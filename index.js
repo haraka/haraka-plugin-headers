@@ -2,13 +2,13 @@
 
 exports.register = function () {
     const plugin = this;
-    plugin.load_template_ini();
+    plugin.load_haraka-plugin-headers_ini();
 }
 
-exports.load_template_ini = function () {
+exports.load_haraka-plugin-headers_ini = function () {
     const plugin = this;
 
-    plugin.cfg = plugin.config.get('template.ini', {
+    plugin.cfg = plugin.config.get('haraka-plugin-headers.ini', {
         booleans: [
             '+enabled',               // plugin.cfg.main.enabled=true
             '-disabled',              // plugin.cfg.main.disabled=false
