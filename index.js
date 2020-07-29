@@ -40,6 +40,7 @@ exports.load_headers_ini = function () {
       '+check.from_match',
       '+check.delivered_to',
       '+check.mailing_list',
+      '+check.from_phish',
 
       '-reject.duplicate_singular',
       '-reject.missing_required',
