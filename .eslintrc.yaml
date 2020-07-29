@@ -10,6 +10,9 @@ extends:
   - eslint:recommended
   - plugin:haraka/recommended
 
+rules:
+  indent: [2, 2, {"SwitchCase": 1}]
+
 root: true
 
 globals:
