@@ -1,12 +1,7 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld');
 
-const phish_targets = [
-  new RegExp(/amazon\.com/i),
-  new RegExp(/paypal\.com/i),
-  new RegExp(/ebay\.com/i),
-]
-
+const phish_targets = []
 
 exports.register = function () {
 
@@ -34,7 +29,7 @@ exports.register = function () {
 
 exports.load_headers_ini = function () {
   const plugin = this;
-  plugin.cfg = plugin.config.get('data.headers.ini', {
+  plugin.cfg = plugin.config.get('headers.ini', {
     booleans: [
       '+check.duplicate_singular',
       '+check.missing_required',
@@ -55,6 +50,10 @@ exports.load_headers_ini = function () {
   }, () => {
     plugin.load_headers_ini()
   })
+
+  for (const d in plugin.cfg.phish_domains) {
+    phish_targets.push(new RegExp(d.replace('.','[.]'), 'i'))
+  }
 }
 
 exports.duplicate_singular = function (next, connection) {

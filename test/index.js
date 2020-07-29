@@ -342,14 +342,14 @@ describe('from_phish', function () {
     }, outer.connection);
   })
 
-  it('fails on From display name mismatch', function (done) {
+  it('fails when amazon.com is in the From header and not envelope sender', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_phish=true;
     this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', 'Amazon.com <test@ayodongbanyak08.com>');
     this.plugin.from_phish(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
-      console.log(r.fail)
+      // console.log(r)
       assert.equal(r.fail.length, 1);
       done()
     }, this.connection);
