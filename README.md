@@ -1,6 +1,5 @@
 [![Build Status][ci-img]][ci-url]
 [![Windows Build Status][ci-win-img]][ci-win-url]
-[![Code Climate][clim-img]][clim-url]
 
 [![NPM][npm-img]][npm-url]
 
@@ -13,7 +12,7 @@ This plugin performs a variety of mail header inspections.
 ```sh
 cd /path/to/local/haraka
 npm install haraka-plugin-headers
-echo "haraka-plugin-headers" >> config/plugins
+echo "headers" >> config/plugins
 service haraka restart
 ```
 
@@ -35,14 +34,14 @@ The next two tests encompass the RFC 5322 checks:
 ## duplicate\_singular
 
 Assure that all the singular headers are present only once. The list of
-headers can be adjusted in config/data.headers.ini:
+headers can be adjusted in config/headers.ini:
 
     * singular=Date,From,Sender,Reply-To,To,Cc,Bcc,Message-Id,In-Reply-To,References,Subject
 
 ## missing\_required
 
 Assuring that all the required headers are present. The list of required
-headers can be altered in config/data.headers.ini:
+headers can be altered in config/headers.ini:
 
     required=From,Date
 
@@ -55,10 +54,12 @@ This checks for that header (unless connection.relaying is set).
 
 Checks the date header and makes sure it's somewhat sane. By default, the date
 cannot be more than 2 days in the future nor 15 days in the past. These can be
-adjusted in config/data.headers.ini:
+adjusted in config/headers.ini:
 
-    date_future_days=2
-    date_past_days=15
+```ini
+date_future_days=2
+date_past_days=15
+```
 
 ## user\_agent
 
@@ -125,6 +126,7 @@ missing_required=false
 ```
 
 
+[![Code Climate][clim-img]][clim-url]
 <!-- leave these buried at the bottom of the document -->
 [ci-img]: https://github.com/haraka/haraka-plugin-headers/workflows/Plugin%20Tests/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-headers/actions?query=workflow%3A%22Plugin+Tests%22
