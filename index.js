@@ -1,6 +1,13 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld');
 
+const phish_targets = [
+  new RegExp(/amazon\.com/i),
+  new RegExp(/paypal\.com/i),
+  new RegExp(/ebay\.com/i),
+]
+
+
 exports.register = function () {
 
   this.load_headers_ini();
@@ -434,14 +441,10 @@ exports.from_phish = function (next, connection) {
     return next();
   }
 
-  this.phish_targets = [
-    new RegExp(/amazon\.com/i),
-    // new RegExp(/amazon.com/i),
-  ]
-
-  for (const addr of this.phish_targets) {
+  for (const addr of phish_targets) {
     if (addr.test(hdr_from) && !addr.test(env_addr)) {
       connection.transaction.results.add(plugin, {fail: `from_phish(${hdr_from}~${env_addr}`});
+      // if (plugin.cfg.reject.from_phish) return next(DENY, `Phishing message detected`);
       return next();
     }
   }
