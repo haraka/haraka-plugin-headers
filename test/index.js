@@ -47,7 +47,6 @@ describe('load_headers_ini', function () {
   })
 })
 
-
 describe('user_agent', function () {
 
   it('none', function (done) {
@@ -326,5 +325,33 @@ describe('delivered_to', function () {
     this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
     this.connection.transaction.rcpt_to.push(new Address.Address('user@example.com'));
     this.plugin.delivered_to(next_cb, this.connection);
+  })
+})
+
+describe('from_phish', function () {
+
+  it('passes typical', function (done) {
+    const outer = this;
+    this.plugin.cfg.check.from_phish=true;
+    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>');
+    this.plugin.from_phish(function () {
+      const r = outer.connection.transaction.results.get('haraka-plugin-headers');
+      assert.notEqual(r.pass.indexOf('from_phish'), -1);
+      done()
+    }, outer.connection);
+  })
+
+  it('fails on From display name mismatch', function (done) {
+    const outer = this;
+    this.plugin.cfg.check.from_phish=true;
+    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.header.add_end('From', 'Amazon.com <test@ayodongbanyak08.com>');
+    this.plugin.from_phish(function () {
+      const r = outer.connection.transaction.results.get('haraka-plugin-headers');
+      console.log(r.fail)
+      assert.equal(r.fail.length, 1);
+      done()
+    }, this.connection);
   })
 })
