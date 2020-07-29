@@ -90,7 +90,7 @@ and assess their reputability.
 
 ## from\_phish
 
-A common form of phishing is spamming the From display name with the domain name of the popular entity whose accounts they're phishing for.
+A common form of phishing is spamming the From display name with the domain name of the popular entity whose accounts they're phishing for. This tests the domains in the [phish_domains] configuration section. If that domains appears in the From header, it must also appear in the envelope sender address.
 
 # Configuration
 
