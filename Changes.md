@@ -1,4 +1,5 @@
 
-# 1.0.0 - 201_-__-__
+# 1.0.0 - 2020-07-28
 
-- initial release
+- repackaged from Haraka
+- added from_phish

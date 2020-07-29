@@ -88,6 +88,10 @@ of the minority (~10%) of ham which fails SPF and DKIM tests. This MLM
 detector is a building block in the ability to detect mail from forwarders
 and assess their reputability.
 
+## from\_phish
+
+A common form of phishing is spamming the From display name with the domain name of the popular entity whose accounts they're phishing for. This tests the domains in the [phish_domains] configuration section. If that domains appears in the From header, it must also appear in the envelope sender address.
+
 # Configuration
 
 The headers.ini file can contain [check] and [reject] sections.

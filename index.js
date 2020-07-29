@@ -1,6 +1,8 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld');
 
+const phish_targets = []
+
 exports.register = function () {
 
   this.load_headers_ini();
@@ -27,7 +29,7 @@ exports.register = function () {
 
 exports.load_headers_ini = function () {
   const plugin = this;
-  plugin.cfg = plugin.config.get('data.headers.ini', {
+  plugin.cfg = plugin.config.get('headers.ini', {
     booleans: [
       '+check.duplicate_singular',
       '+check.missing_required',
@@ -38,6 +40,7 @@ exports.load_headers_ini = function () {
       '+check.from_match',
       '+check.delivered_to',
       '+check.mailing_list',
+      '+check.from_phish',
 
       '-reject.duplicate_singular',
       '-reject.missing_required',
@@ -48,6 +51,10 @@ exports.load_headers_ini = function () {
   }, () => {
     plugin.load_headers_ini()
   })
+
+  for (const d in plugin.cfg.phish_domains) {
+    phish_targets.push(new RegExp(d.replace('.','[.]'), 'i'))
+  }
 }
 
 exports.duplicate_singular = function (next, connection) {
@@ -434,14 +441,10 @@ exports.from_phish = function (next, connection) {
     return next();
   }
 
-  this.phish_targets = [
-    new RegExp(/amazon\.com/i),
-    // new RegExp(/amazon.com/i),
-  ]
-
-  for (const addr of this.phish_targets) {
+  for (const addr of phish_targets) {
     if (addr.test(hdr_from) && !addr.test(env_addr)) {
       connection.transaction.results.add(plugin, {fail: `from_phish(${hdr_from}~${env_addr}`});
+      // if (plugin.cfg.reject.from_phish) return next(DENY, `Phishing message detected`);
       return next();
     }
   }
