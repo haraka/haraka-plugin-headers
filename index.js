@@ -47,6 +47,7 @@ exports.load_headers_ini = function () {
       '-reject.invalid_return_path',
       '-reject.invalid_date',
       '+reject.delivered_to',
+      '-reject.from_phish',
     ],
   }, () => {
     plugin.load_headers_ini()
@@ -88,7 +89,7 @@ exports.duplicate_singular = function (next, connection) {
   }
 
   connection.transaction.results.add(plugin, {pass: 'duplicate'});
-  return next();
+  next();
 }
 
 exports.missing_required = function (next, connection) {
@@ -101,8 +102,7 @@ exports.missing_required = function (next, connection) {
     ['Date', 'From'];
 
   const failures = [];
-  for (let i=0; i < required.length; i++) {
-    const h = required[i];
+  for (const h of required) {
     if (connection.transaction.header.get_all(h).length === 0) {
       connection.transaction.results.add(plugin, {fail: `missing:${h}`});
       failures.push(h);
@@ -117,7 +117,7 @@ exports.missing_required = function (next, connection) {
   }
 
   connection.transaction.results.add(plugin, {pass: 'missing'});
-  return next();
+  next();
 }
 
 exports.invalid_return_path = function (next, connection) {
@@ -150,7 +150,7 @@ exports.invalid_return_path = function (next, connection) {
   }
 
   connection.transaction.results.add(plugin, {pass: 'Return-Path'});
-  return next();
+  next();
 }
 
 exports.invalid_date = function (next, connection) {
@@ -201,7 +201,7 @@ exports.invalid_date = function (next, connection) {
   }
 
   connection.transaction.results.add(plugin, {pass: 'invalid_date'});
-  return next();
+  next();
 }
 
 exports.user_agent = function (next, connection) {
@@ -235,7 +235,7 @@ exports.user_agent = function (next, connection) {
   if (found_ua) return next();
 
   connection.transaction.results.add(plugin, {fail: 'UA'});
-  return next();
+  next();
 }
 
 exports.direct_to_mx = function (next, connection) {
@@ -267,7 +267,7 @@ exports.direct_to_mx = function (next, connection) {
   }
 
   connection.transaction.results.add(plugin, {pass: `direct-to-mx(${c})`});
-  return next();
+  next();
 }
 
 exports.from_match = function (next, connection) {
@@ -332,7 +332,7 @@ exports.from_match = function (next, connection) {
   connection.transaction.results.add(plugin, {emit: true,
     fail: `from_match(${env_dom} / ${msg_dom})`
   });
-  return next();
+  next();
 }
 
 exports.delivered_to = function (next, connection) {
@@ -353,7 +353,7 @@ exports.delivered_to = function (next, connection) {
     return next(DENY, "Invalid Delivered-To header content");
   }
 
-  return next();
+  next();
 }
 
 exports.mailing_list = function (next, connection) {
@@ -419,7 +419,7 @@ exports.mailing_list = function (next, connection) {
   if (found_mlm) return next();
 
   connection.transaction.results.add(plugin, {msg: 'not MLM'});
-  return next();
+  next();
 }
 
 exports.from_phish = function (next, connection) {
@@ -428,27 +428,44 @@ exports.from_phish = function (next, connection) {
   if (!connection.transaction) return next();
 
   // check the header From display name for common phish domains
-
-  const env_addr = connection.transaction.mail_from;
-  if (!env_addr) {
-    connection.transaction.results.add(plugin, {skip: 'from_phish(null_env)'});
-    return next();
-  }
-
-  const hdr_from = connection.transaction.header.get_decoded('From');
+  const hdr_from = connection.transaction.header.get_decoded('From')
   if (!hdr_from) {
-    connection.transaction.results.add(plugin, {skip: 'from_phish(missing)'});
-    return next();
+    connection.transaction.results.add(plugin, {skip: 'from_phish(missing)'})
+    return next()
   }
 
   for (const addr of phish_targets) {
-    if (addr.test(hdr_from) && !addr.test(env_addr)) {
-      connection.transaction.results.add(plugin, {fail: `from_phish(${hdr_from}~${env_addr}`});
-      // if (plugin.cfg.reject.from_phish) return next(DENY, `Phishing message detected`);
-      return next();
+    if (addr.test(hdr_from) && !exports.has_auth_match(addr, connection)) {
+
+      connection.transaction.results.add(plugin, {fail: `from_phish(${hdr_from}`})
+      if (plugin.cfg.reject.from_phish) return next(DENY, `Phishing message detected`)
+      return next()
     }
   }
 
-  connection.transaction.results.add(plugin, {pass: 'from_phish'});
-  return next();
+  connection.transaction.results.add(plugin, {pass: 'from_phish'})
+  next()
+}
+
+exports.has_auth_match = function (re, conn) {
+  // check domain RegEx against spf, dkim, and env sender for a match
+
+  const spf = conn.transaction.results.get('spf');  // only check mfrom
+  if (spf && re.test(spf.pass)) return true;
+
+  // try DKIM via results
+  const dkim = conn.transaction.results.get('dkim_verify');
+  if (dkim && re.test(dkim.pass)) return true;
+
+  // fallback DKIM via notes
+  const dkim_note = conn.transaction.notes.dkim_results
+  if (dkim_note) {
+    const passes = dkim_note.filter( r => r.result === 'pass' && re.test(r.domain))
+    if (passes.length) return true
+  }
+
+  const env_addr = conn.transaction.mail_from
+  if (env_addr && re.test(env_addr)) return true
+
+  return false
 }

@@ -3,7 +3,7 @@
 const assert   = require('assert');
 
 // npm modules
-const Address  = require('address-rfc2821');
+const Address  = require('address-rfc2821').Address;
 const fixtures = require('haraka-test-fixtures');
 
 // start of tests
@@ -142,7 +142,7 @@ describe('from_match', function () {
   it('match bare', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', 'test@example.com');
     this.plugin.from_match(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
@@ -153,7 +153,7 @@ describe('from_match', function () {
   it('match typical', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>');
     this.plugin.from_match(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
@@ -164,7 +164,7 @@ describe('from_match', function () {
   it('match unquoted', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', 'Test User <test@example.com>');
     this.plugin.from_match(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
@@ -176,7 +176,7 @@ describe('from_match', function () {
   it('mismatch', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', "test@example.net");
     // console.log(this.connection.transaction.results);
     this.plugin.from_match(function () {
@@ -297,7 +297,7 @@ describe('delivered_to', function () {
       done()
     }.bind(this);
     this.plugin.cfg.check.delivered_to=true;
-    // this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    // this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
     this.plugin.delivered_to(next_cb, this.connection);
   })
@@ -308,9 +308,9 @@ describe('delivered_to', function () {
       done()
     }.bind(this);
     this.plugin.cfg.check.delivered_to=true;
-    // this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    // this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
-    this.connection.transaction.rcpt_to.push(new Address.Address('user@example.com'));
+    this.connection.transaction.rcpt_to.push(new Address('user@example.com'));
     this.plugin.delivered_to(next_cb, this.connection);
   })
   it('recipient match, reject disabled', function (done) {
@@ -321,10 +321,41 @@ describe('delivered_to', function () {
     }.bind(this);
     this.plugin.cfg.check.delivered_to=true;
     this.plugin.cfg.reject.delivered_to=false;
-    // this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    // this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
-    this.connection.transaction.rcpt_to.push(new Address.Address('user@example.com'));
+    this.connection.transaction.rcpt_to.push(new Address('user@example.com'));
     this.plugin.delivered_to(next_cb, this.connection);
+  })
+})
+
+describe('has_auth_match', function () {
+  it('detects an absense of auth data', function (done) {
+    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), false)
+    done()
+  })
+
+  it('detects a passed SPF auth', function (done) {
+    this.connection.transaction.results.add({name: 'spf'}, { pass: 'test.com' })
+    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
+    done()
+  })
+
+  it('detects a passed DKIM auth (notes)', function (done) {
+    this.connection.transaction.notes.dkim_results = [{ result: 'pass', domain: 'test.com' }]
+    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
+    done()
+  })
+
+  it('detects a passed DKIM auth (results)', function (done) {
+    this.connection.transaction.results.add({ name: 'dkim_verify'}, { pass: 'test.com' })
+    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
+    done()
+  })
+
+  it('detects a passed envelope sender', function (done) {
+    this.connection.transaction.mail_from = new Address('user@test.com')
+    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
+    done()
   })
 })
 
@@ -333,7 +364,7 @@ describe('from_phish', function () {
   it('passes typical', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_phish=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>');
     this.plugin.from_phish(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
@@ -345,7 +376,7 @@ describe('from_phish', function () {
   it('fails when amazon.com is in the From header and not envelope sender', function (done) {
     const outer = this;
     this.plugin.cfg.check.from_phish=true;
-    this.connection.transaction.mail_from = new Address.Address('<test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>');
     this.connection.transaction.header.add_end('From', 'Amazon.com <test@ayodongbanyak08.com>');
     this.plugin.from_phish(function () {
       const r = outer.connection.transaction.results.get('haraka-plugin-headers');
