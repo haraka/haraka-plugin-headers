@@ -1,5 +1,6 @@
 [![Build Status][ci-img]][ci-url]
 [![Windows Build Status][ci-win-img]][ci-win-url]
+[![Code Climate][clim-img]][clim-url]
 
 [![NPM][npm-img]][npm-url]
 
@@ -126,7 +127,6 @@ missing_required=false
 ```
 
 
-[![Code Climate][clim-img]][clim-url]
 <!-- leave these buried at the bottom of the document -->
 [ci-img]: https://github.com/haraka/haraka-plugin-headers/workflows/Plugin%20Tests/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-headers/actions?query=workflow%3A%22Plugin+Tests%22
