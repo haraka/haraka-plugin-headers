@@ -13,18 +13,20 @@ exports.register = function () {
   catch (e) {
     this.logerror("unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n")
   }
-  this.register_hook('data_post', 'duplicate_singular')
-  this.register_hook('data_post', 'missing_required')
-  this.register_hook('data_post', 'invalid_date')
-  this.register_hook('data_post', 'invalid_return_path')
-  this.register_hook('data_post', 'user_agent')
-  this.register_hook('data_post', 'direct_to_mx')
+
+  if (this.cfg.check.duplicate_singular)  this.register_hook('data_post', 'duplicate_singular')
+  if (this.cfg.check.missing_required)    this.register_hook('data_post', 'missing_required')
+  if (this.cfg.check.invalid_return_path) this.register_hook('data_post', 'invalid_return_path')
+  if (this.cfg.check.invalid_date)        this.register_hook('data_post', 'invalid_date')
+  if (this.cfg.check.user_agent)          this.register_hook('data_post', 'user_agent')
+  if (this.cfg.check.direct_to_mx)        this.register_hook('data_post', 'direct_to_mx')
+
   if (this.addrparser) {
-    this.register_hook('data_post', 'from_match')
-    this.register_hook('data_post', 'delivered_to')
+    if (this.cfg.check.from_match)        this.register_hook('data_post', 'from_match')
+    if (this.cfg.check.delivered_to)      this.register_hook('data_post', 'delivered_to')
   }
-  this.register_hook('data_post', 'mailing_list')
-  this.register_hook('data_post', 'from_phish')
+  if (this.cfg.check.mailing_list)        this.register_hook('data_post', 'mailing_list')
+  if (this.cfg.check.from_phish)          this.register_hook('data_post', 'from_phish')
 }
 
 exports.load_headers_ini = function () {
@@ -56,11 +58,11 @@ exports.load_headers_ini = function () {
   for (const d in plugin.cfg.phish_domains) {
     phish_targets.push(new RegExp(d.replace('.','[.]'), 'i'))
   }
+  // console.log(phish_targets)
 }
 
 exports.duplicate_singular = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.duplicate_singular) return next();
 
   // RFC 5322 Section 3.6, Headers that MUST be unique if present
   const singular = plugin.cfg.main.singular !== undefined ?
@@ -94,7 +96,6 @@ exports.duplicate_singular = function (next, connection) {
 
 exports.missing_required = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.missing_required) return next();
 
   // Enforce RFC 5322 Section 3.6, Headers that MUST be present
   const required = plugin.cfg.main.required !== undefined ?
@@ -122,7 +123,6 @@ exports.missing_required = function (next, connection) {
 
 exports.invalid_return_path = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.invalid_return_path) return next();
 
   // Tests for Return-Path headers that shouldn't be present
 
@@ -155,10 +155,8 @@ exports.invalid_return_path = function (next, connection) {
 
 exports.invalid_date = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.invalid_date) return next();
 
   // Assure Date header value is [somewhat] sane
-
   let msg_date = connection.transaction.header.get_all('Date');
   if (!msg_date || msg_date.length === 0) return next();
 
@@ -206,7 +204,6 @@ exports.invalid_date = function (next, connection) {
 
 exports.user_agent = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.user_agent) return next();
 
   if (!connection.transaction) return next();
 
@@ -240,7 +237,6 @@ exports.user_agent = function (next, connection) {
 
 exports.direct_to_mx = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.direct_to_mx) return next();
 
   if (!connection.transaction) return next();
 
@@ -272,7 +268,6 @@ exports.direct_to_mx = function (next, connection) {
 
 exports.from_match = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.from_match) return next();
 
   // see if the header From matches the envelope FROM. There are valid
   // cases to not match (~10% of ham) but a non-match is much more
@@ -337,7 +332,6 @@ exports.from_match = function (next, connection) {
 
 exports.delivered_to = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.delivered_to) return next();
 
   const txn = connection.transaction;
   if (!txn) return next();
@@ -358,7 +352,6 @@ exports.delivered_to = function (next, connection) {
 
 exports.mailing_list = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.mailing_list) return next();
   if (!connection.transaction) return next();
 
   const mlms = {
@@ -424,7 +417,6 @@ exports.mailing_list = function (next, connection) {
 
 exports.from_phish = function (next, connection) {
   const plugin = this;
-  if (!plugin.cfg.check.from_phish) return next()
   if (!connection.transaction) return next();
 
   // check the header From display name for common phish domains
@@ -435,7 +427,8 @@ exports.from_phish = function (next, connection) {
   }
 
   for (const addr of phish_targets) {
-    if (addr.test(hdr_from) && !exports.has_auth_match(addr, connection)) {
+    if (!addr.test(hdr_from)) continue;  // not a sender match
+    if (!exports.has_auth_match(addr, connection)) {
 
       connection.transaction.results.add(plugin, {fail: `from_phish(${hdr_from}`})
       if (plugin.cfg.reject.from_phish) return next(DENY, `Phishing message detected`)
