@@ -1,7 +1,5 @@
-[![Build Status][ci-img]][ci-url]
-[![Windows Build Status][ci-win-img]][ci-win-url]
+[![CI Tests][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
-
 [![NPM][npm-img]][npm-url]
 
 # haraka-plugin-headers
@@ -128,10 +126,8 @@ missing_required=false
 
 
 <!-- leave these buried at the bottom of the document -->
-[ci-img]: https://github.com/haraka/haraka-plugin-headers/workflows/Plugin%20Tests/badge.svg
-[ci-url]: https://github.com/haraka/haraka-plugin-headers/actions?query=workflow%3A%22Plugin+Tests%22
-[ci-win-img]: https://github.com/haraka/haraka-plugin-headers/workflows/Plugin%20Tests%20-%20Windows/badge.svg
-[ci-win-url]: https://github.com/haraka/haraka-plugin-headers/actions?query=workflow%3A%22Plugin+Tests+-+Windows%22
+[ci-img]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-headers/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-headers
 [npm-img]: https://nodei.co/npm/haraka-plugin-headers.png
