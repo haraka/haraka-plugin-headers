@@ -6,19 +6,14 @@
 
 #### Added
 
-- 
-
-#### Fixed
-
-- 
+- feat: instead of early exits, skip registering
+- feat: add phish test
+- feat(from_phish): check against SPF, DKIM, and ENV FROM
 
 #### Changed
 
-- feat: instead of early exits, skip registering
-- feat: add phish test
 - ci: depends on shared haraka GHA workflows
 - ci(codeclimate): relax some checks
-- feat(from_phish): check against SPF, DKIM, and ENV FROM
 - doc: fixes for config name
 
 
