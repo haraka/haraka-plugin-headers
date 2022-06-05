@@ -126,8 +126,8 @@ missing_required=false
 
 
 <!-- leave these buried at the bottom of the document -->
-[ci-img]: https://github.com/haraka/haraka-plugin-headers/workflows/Plugin%20Tests/badge.svg
-[ci-url]: https://github.com/haraka/haraka-plugin-headers/actions?query=workflow%3A%22Plugin+Tests%22
+[ci-img]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-headers/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-headers
 [npm-img]: https://nodei.co/npm/haraka-plugin-headers.png
