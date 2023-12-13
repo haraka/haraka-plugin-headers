@@ -2,6 +2,22 @@
 ### Unreleased
 
 
+### [1.0.4] - 2023-12-12
+
+#### Added
+
+- 
+
+#### Fixed
+
+- 
+
+#### Changed
+
+- 
+
+
+
 ### [1.0.3] - 2022-06-05
 
 #### Added
@@ -30,3 +46,4 @@
 - added from_phish
 
 [1.0.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.3
+[1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.4

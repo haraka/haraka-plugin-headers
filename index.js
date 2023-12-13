@@ -73,12 +73,11 @@ exports.duplicate_singular = function (next, connection) {
     ];
 
   const failures = [];
-  for (let i=0; i < singular.length; i++ ) {
-    if (connection.transaction.header.get_all(singular[i]).length <= 1) {
+  for (const name of singular) {
+    if (connection.transaction.header.get_all(name).length <= 1) {
       continue;
     }
 
-    const name = singular[i];
     connection.transaction.results.add(plugin, {fail: `duplicate:${name}`});
     failures.push(name);
   }
@@ -222,8 +221,7 @@ exports.user_agent = function (next, connection) {
     'x-ms-has-attach'
   ];
   // for (const h in headers) {}
-  for (let i=0; i < headers.length; i++) {
-    const name = headers[i];
+  for (const name of headers) {
     const header = connection.transaction.header.get(name);
     if (!header) continue;   // header not present
     found_ua++;
@@ -339,8 +337,8 @@ exports.delivered_to = function (next, connection) {
   if (!del_to) return next();
 
   const rcpts = connection.transaction.rcpt_to;
-  for (let i=0; i<rcpts.length; i++) {
-    const rcpt = rcpts[i].address();
+  for (const rcptElement of rcpts) {
+    const rcpt = rcptElement.address();
     if (rcpt !== del_to) continue;
     connection.transaction.results.add(plugin, {emit: true, fail: 'delivered_to'});
     if (!plugin.cfg.reject.delivered_to) continue;
@@ -374,8 +372,7 @@ exports.mailing_list = function (next, connection) {
   Object.keys(mlms).forEach(name => {
     const header = connection.transaction.header.get(name);
     if (!header) { return; }  // header not present
-    for (let i=0; i < mlms[name].length; i++) {
-      const j = mlms[name][i];
+    for (const j of mlms[name]) {
       if (j.start) {
         if (header.substring(0,j.start.length) === j.start) {
           txr.add(plugin, {pass: `MLM(${j.mlm})`});
