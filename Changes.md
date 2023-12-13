@@ -4,30 +4,15 @@
 
 ### [1.0.4] - 2023-12-12
 
-#### Added
-
-- 
-
-#### Fixed
-
-- 
-
-#### Changed
-
-- 
-
+- ci: publish updates, shared test actions
+- doc(README): formatting 
 
 
 ### [1.0.3] - 2022-06-05
 
-#### Added
-
 - feat: instead of early exits, skip registering
 - feat: add phish test
 - feat(from_phish): check against SPF, DKIM, and ENV FROM
-
-#### Changed
-
 - ci: depends on shared haraka GHA workflows
 - ci(codeclimate): relax some checks
 - doc: fixes for config name
