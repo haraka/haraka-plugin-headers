@@ -2,16 +2,17 @@
 ### Unreleased
 
 
-### [1.0.3] - 2022-06-05
+### [1.0.4] - 2023-12-12
 
-#### Added
+- ci: publish updates, shared test actions
+- doc(README): formatting 
+
+
+### [1.0.3] - 2022-06-05
 
 - feat: instead of early exits, skip registering
 - feat: add phish test
 - feat(from_phish): check against SPF, DKIM, and ENV FROM
-
-#### Changed
-
 - ci: depends on shared haraka GHA workflows
 - ci(codeclimate): relax some checks
 - doc: fixes for config name
@@ -30,3 +31,4 @@
 - added from_phish
 
 [1.0.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.3
+[1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.4

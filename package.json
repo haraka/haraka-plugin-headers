@@ -1,6 +1,6 @@
 {
   "name": "haraka-plugin-headers",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Haraka plugin that performs tests on email headers",
   "main": "index.js",
   "scripts": {
