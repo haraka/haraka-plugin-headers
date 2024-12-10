@@ -2,6 +2,7 @@
 
 ### [1.0.5] - 2024-12-10
 
+- deps: bumped versions to latest
 - populate [files] in package.json.
 - dep: eslint-plugin-haraka -> @haraka/eslint-config
 - lint: remove duplicate / stale rules from .eslintrc
