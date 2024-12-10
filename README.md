@@ -1,8 +1,6 @@
 [![CI Tests][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
 
-[![NPM][npm-img]][npm-url]
-
 # haraka-plugin-headers
 
 This plugin performs a variety of mail header inspections.
@@ -131,5 +129,3 @@ missing_required=false
 [ci-url]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-headers/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-headers
-[npm-img]: https://nodei.co/npm/haraka-plugin-headers.png
-[npm-url]: https://www.npmjs.com/package/haraka-plugin-headers
