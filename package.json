@@ -8,8 +8,11 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "prettier": "npx prettier . --check",
+    "prettier:fix": "npx prettier . --write --log-level=warn",
     "lint": "npx eslint@^8 *.js test",
-    "lintfix": "npx eslint@^8 --fix *.js test",
+    "lint:fix": "npx eslint@^8 --fix *.js test",
     "test": "npx mocha",
     "versions": "npx dependency-version-checker check",
     "versionsup": "npx dependency-version-checker update"

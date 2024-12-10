@@ -1,10 +1,9 @@
-
 // node.js built-in modules
-const assert   = require('assert');
+const assert = require('assert')
 
 // npm modules
-const Address  = require('address-rfc2821').Address;
-const fixtures = require('haraka-test-fixtures');
+const Address = require('address-rfc2821').Address
+const fixtures = require('haraka-test-fixtures')
 
 // start of tests
 //    assert: https://nodejs.org/api/assert.html
@@ -15,14 +14,13 @@ beforeEach(function (done) {
   this.plugin.register()
 
   try {
-    this.plugin.addrparser = require('address-rfc2822');
-  }
-  catch (ignore) {}
+    this.plugin.addrparser = require('address-rfc2822')
+  } catch (ignore) {}
 
-  this.connection = fixtures.connection.createConnection();
+  this.connection = fixtures.connection.createConnection()
   this.connection.init_transaction()
 
-  done()  // if a test hangs, assure you called done()
+  done() // if a test hangs, assure you called done()
 })
 
 describe('haraka-plugin-headers', function () {
@@ -48,21 +46,20 @@ describe('load_headers_ini', function () {
 })
 
 describe('user_agent', function () {
-
   it('none', function (done) {
-    this.plugin.cfg.check.user_agent=true;
+    this.plugin.cfg.check.user_agent = true
     this.plugin.user_agent(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(/UA/.test(r.fail), true);
-      assert.equal(/UA/.test(r.pass), false);
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(/UA/.test(r.fail), true)
+      assert.equal(/UA/.test(r.pass), false)
       done()
-    }, this.connection);
+    }, this.connection)
   })
 
   it('thunderbird', function (done) {
-    this.plugin.cfg.check.user_agent=true
+    this.plugin.cfg.check.user_agent = true
     this.connection.transaction.header.add_end('User-Agent', 'Thunderbird')
-    this.plugin.user_agent( () => {
+    this.plugin.user_agent(() => {
       const r = this.connection.transaction.results.get('haraka-plugin-headers')
       // console.log(r)
       assert.equal(true, /UA/.test(r.pass))
@@ -72,252 +69,295 @@ describe('user_agent', function () {
   })
 
   it('X-mailer', function (done) {
-    this.plugin.cfg.check.user_agent=true
-    this.connection.transaction.header.add_end('X-Mailer', 'Apple Mail');
-    this.plugin.user_agent( () => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
+    this.plugin.cfg.check.user_agent = true
+    this.connection.transaction.header.add_end('X-Mailer', 'Apple Mail')
+    this.plugin.user_agent(() => {
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
       assert.equal(true, /UA/.test(r.pass))
       assert.equal(false, /UA/.test(r.fail))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 })
 
 describe('direct_to_mx', function () {
-
   it('auth user', function (done) {
-    this.connection.notes.auth_user = 'test@example.com';
-    this.plugin.cfg.check.direct_to_mx=true;
-    this.plugin.direct_to_mx( () => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /^direct-to-mx/.test(r.skip));
-      assert.equal(false, /^direct-to-mx/.test(r.pass));
-      assert.equal(false, /^direct-to-mx/.test(r.fail));
+    this.connection.notes.auth_user = 'test@example.com'
+    this.plugin.cfg.check.direct_to_mx = true
+    this.plugin.direct_to_mx(() => {
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /^direct-to-mx/.test(r.skip))
+      assert.equal(false, /^direct-to-mx/.test(r.pass))
+      assert.equal(false, /^direct-to-mx/.test(r.fail))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 
   it('received 0', function (done) {
-    this.plugin.cfg.check.direct_to_mx=true;
+    this.plugin.cfg.check.direct_to_mx = true
     this.plugin.direct_to_mx(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /^direct-to-mx/.test(r.fail));
-      assert.equal(false, /^direct-to-mx/.test(r.pass));
-      assert.equal(false, /^direct-to-mx/.test(r.skip));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /^direct-to-mx/.test(r.fail))
+      assert.equal(false, /^direct-to-mx/.test(r.pass))
+      assert.equal(false, /^direct-to-mx/.test(r.skip))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('received 1', function (done) {
-    this.plugin.cfg.check.direct_to_mx=true;
-    this.connection.transaction.header.add_end('Received', 'blah');
+    this.plugin.cfg.check.direct_to_mx = true
+    this.connection.transaction.header.add_end('Received', 'blah')
     this.plugin.direct_to_mx(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /^direct-to-mx/.test(r.fail));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /^direct-to-mx/.test(r.fail))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('received 2', function (done) {
-    this.plugin.cfg.check.direct_to_mx=true;
-    this.connection.transaction.header.add_end('Received', 'blah1');
-    this.connection.transaction.header.add_end('Received', 'blah2');
+    this.plugin.cfg.check.direct_to_mx = true
+    this.connection.transaction.header.add_end('Received', 'blah1')
+    this.connection.transaction.header.add_end('Received', 'blah2')
     this.plugin.direct_to_mx(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /^direct-to-mx/.test(r.pass));
-      assert.equal(false, /^direct-to-mx/.test(r.fail));
-      assert.equal(false, /^direct-to-mx/.test(r.skip));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /^direct-to-mx/.test(r.pass))
+      assert.equal(false, /^direct-to-mx/.test(r.fail))
+      assert.equal(false, /^direct-to-mx/.test(r.skip))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 })
 
 describe('from_match', function () {
-
   it('match bare', function (done) {
-    this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', 'test@example.com');
+    this.plugin.cfg.check.from_match = true
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end('From', 'test@example.com')
     this.plugin.from_match(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.notEqual(-1, r.pass.indexOf('from_match'));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.notEqual(-1, r.pass.indexOf('from_match'))
       done()
     }, this.connection)
   })
   it('match typical', function (done) {
-    this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>');
+    this.plugin.cfg.check.from_match = true
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end(
+      'From',
+      '"Test User" <test@example.com>',
+    )
     this.plugin.from_match(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.notEqual(-1, r.pass.indexOf('from_match'));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.notEqual(-1, r.pass.indexOf('from_match'))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('match unquoted', function (done) {
-    this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', 'Test User <test@example.com>');
+    this.plugin.cfg.check.from_match = true
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end(
+      'From',
+      'Test User <test@example.com>',
+    )
     this.plugin.from_match(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.notEqual(-1, r.pass.indexOf('from_match'));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.notEqual(-1, r.pass.indexOf('from_match'))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 
   it('mismatch', function (done) {
-    this.plugin.cfg.check.from_match=true;
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', "test@example.net");
+    this.plugin.cfg.check.from_match = true
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end('From', 'test@example.net')
     // console.log(this.connection.transaction.results);
     this.plugin.from_match(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /^from_match/.test(r.fail));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /^from_match/.test(r.fail))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 })
 
 describe('mailing_list', function () {
-
   it('ezmlm true', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('Mailing-List', "blah blah: run by ezmlm");
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'Mailing-List',
+      'blah blah: run by ezmlm',
+    )
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
       assert.equal(true, /ezmlm/.test(r.pass))
       assert.equal(0, r.fail.length)
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('ezmlm false', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('Mailing-List', "blah blah random header tokens");
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'Mailing-List',
+      'blah blah random header tokens',
+    )
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(r.pass.length, 0);
-      assert.equal(true, /not/.test(r.msg));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(r.pass.length, 0)
+      assert.equal(true, /not/.test(r.msg))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('yahoogroups', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('Mailing-List', "blah blah such-and-such@yahoogroups.com email list");
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'Mailing-List',
+      'blah blah such-and-such@yahoogroups.com email list',
+    )
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /yahoogroups/.test(r.pass));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /yahoogroups/.test(r.pass))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('majordomo', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('Sender', "owner-blah-blah whatcha");
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'Sender',
+      'owner-blah-blah whatcha',
+    )
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /majordomo/.test(r.pass));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /majordomo/.test(r.pass))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('mailman', function (done) {
-    this.connection.transaction.header.add_end('X-Mailman-Version', "owner-blah-blah whatcha");
-    this.plugin.cfg.check.mailing_list=true;
+    this.connection.transaction.header.add_end(
+      'X-Mailman-Version',
+      'owner-blah-blah whatcha',
+    )
+    this.plugin.cfg.check.mailing_list = true
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /mailman/.test(r.pass));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /mailman/.test(r.pass))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('majordomo v', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('X-Majordomo-Version', "owner-blah-blah whatcha");
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'X-Majordomo-Version',
+      'owner-blah-blah whatcha',
+    )
     this.plugin.mailing_list(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.equal(true, /majordomo/.test(r.pass));
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.equal(true, /majordomo/.test(r.pass))
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('google groups', function (done) {
-    this.plugin.cfg.check.mailing_list=true;
-    this.connection.transaction.header.add_end('X-Google-Loop', "blah-blah whatcha")
+    this.plugin.cfg.check.mailing_list = true
+    this.connection.transaction.header.add_end(
+      'X-Google-Loop',
+      'blah-blah whatcha',
+    )
     this.plugin.mailing_list(() => {
       const r = this.connection.transaction.results.get('haraka-plugin-headers')
       assert.equal(true, /googlegroups/.test(r.pass))
       done()
-    }, this.connection);
+    }, this.connection)
   })
 })
 
 describe('delivered_to', function () {
-
   it('disabled', function (done) {
-    this.plugin.cfg.check.delivered_to=false;
+    this.plugin.cfg.check.delivered_to = false
     this.plugin.delivered_to(function (res, msg) {
-      assert.equal(undefined, res);
-      assert.equal(undefined, msg);
+      assert.equal(undefined, res)
+      assert.equal(undefined, msg)
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('header not present', function (done) {
-    this.plugin.cfg.check.delivered_to=true;
+    this.plugin.cfg.check.delivered_to = true
     this.plugin.delivered_to(function (res, msg) {
-      assert.equal(undefined, res);
-      assert.equal(undefined, msg);
+      assert.equal(undefined, res)
+      assert.equal(undefined, msg)
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('no recipient match', function (done) {
-    this.plugin.cfg.check.delivered_to=true;
+    this.plugin.cfg.check.delivered_to = true
     // this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
+    this.connection.transaction.header.add_end(
+      'Delivered-To',
+      'user@example.com',
+    )
     this.plugin.delivered_to(function (res, msg) {
-      assert.equal(undefined, res);
-      assert.equal(undefined, msg);
+      assert.equal(undefined, res)
+      assert.equal(undefined, msg)
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('recipient match', function (done) {
-    this.plugin.cfg.check.delivered_to=true;
+    this.plugin.cfg.check.delivered_to = true
     // this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
-    this.connection.transaction.rcpt_to.push(new Address('user@example.com'));
+    this.connection.transaction.header.add_end(
+      'Delivered-To',
+      'user@example.com',
+    )
+    this.connection.transaction.rcpt_to.push(new Address('user@example.com'))
     this.plugin.delivered_to(function (res, msg) {
-      assert.equal(DENY, res);
-      assert.equal('Invalid Delivered-To header content', msg);
+      assert.equal(DENY, res)
+      assert.equal('Invalid Delivered-To header content', msg)
       done()
-    }, this.connection);
+    }, this.connection)
   })
   it('recipient match, reject disabled', function (done) {
-    this.plugin.cfg.check.delivered_to=true;
-    this.plugin.cfg.reject.delivered_to=false;
+    this.plugin.cfg.check.delivered_to = true
+    this.plugin.cfg.reject.delivered_to = false
     // this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('Delivered-To', "user@example.com");
-    this.connection.transaction.rcpt_to.push(new Address('user@example.com'));
+    this.connection.transaction.header.add_end(
+      'Delivered-To',
+      'user@example.com',
+    )
+    this.connection.transaction.rcpt_to.push(new Address('user@example.com'))
     this.plugin.delivered_to(function (res, msg) {
-      assert.equal(undefined, res);
-      assert.equal(undefined, msg);
+      assert.equal(undefined, res)
+      assert.equal(undefined, msg)
       done()
-    }, this.connection);
+    }, this.connection)
   })
 })
 
 describe('has_auth_match', function () {
   it('detects an absense of auth data', function (done) {
-    assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), false)
+    assert.equal(
+      this.plugin.has_auth_match(/test\.com/, this.connection),
+      false,
+    )
     done()
   })
 
   it('detects a passed SPF auth', function (done) {
-    this.connection.transaction.results.add({name: 'spf'}, { pass: 'test.com' })
+    this.connection.transaction.results.add(
+      { name: 'spf' },
+      { pass: 'test.com' },
+    )
     assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
     done()
   })
 
   it('detects a passed DKIM auth (notes)', function (done) {
-    this.connection.transaction.notes.dkim_results = [{ result: 'pass', domain: 'test.com' }]
+    this.connection.transaction.notes.dkim_results = [
+      { result: 'pass', domain: 'test.com' },
+    ]
     assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
     done()
   })
 
   it('detects a passed DKIM auth (results)', function (done) {
-    this.connection.transaction.results.add({ name: 'dkim_verify'}, { pass: 'test.com' })
+    this.connection.transaction.results.add(
+      { name: 'dkim_verify' },
+      { pass: 'test.com' },
+    )
     assert.equal(this.plugin.has_auth_match(/test\.com/, this.connection), true)
     done()
   })
@@ -330,40 +370,52 @@ describe('has_auth_match', function () {
 })
 
 describe('from_phish', function () {
-
   it('passes mfrom match', function (done) {
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end(
+      'From',
+      '"Test User" <test@example.com>',
+    )
     this.plugin.from_phish(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
-      assert.notEqual(r.pass.indexOf('from_phish'), -1);
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
+      assert.notEqual(r.pass.indexOf('from_phish'), -1)
       done()
-    }, this.connection);
+    }, this.connection)
   })
 
   it('fails when amazon.com is in the From header and not envelope sender', function (done) {
-    this.connection.transaction.mail_from = new Address('<test@example.com>');
-    this.connection.transaction.header.add_end('From', 'Amazon.com <test@ayodongbanyak08.com>');
+    this.connection.transaction.mail_from = new Address('<test@example.com>')
+    this.connection.transaction.header.add_end(
+      'From',
+      'Amazon.com <test@ayodongbanyak08.com>',
+    )
     this.plugin.from_phish(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
       // console.log(r)
-      assert.equal(r.fail.length, 1);
+      assert.equal(r.fail.length, 1)
       done()
-    }, this.connection);
+    }, this.connection)
   })
 
   it('passes dkim_verify match', function (done) {
     // this.plugin.cfg.check.from_phish=true;
-    this.connection.transaction.mail_from = new Address('<01010173e2d51ce9-fda858da-b513-412f-b03b-6db12012417e-000000@us-west-2.amazonses.com>');
-    this.connection.transaction.header.add_end('From', 'Amazon Business <no-reply@business.amazon.com>');
-    this.connection.transaction.results.add({name: 'dkim_verify'}, { pass: ['business.amazon.com','amazonses.com'] })
+    this.connection.transaction.mail_from = new Address(
+      '<01010173e2d51ce9-fda858da-b513-412f-b03b-6db12012417e-000000@us-west-2.amazonses.com>',
+    )
+    this.connection.transaction.header.add_end(
+      'From',
+      'Amazon Business <no-reply@business.amazon.com>',
+    )
+    this.connection.transaction.results.add(
+      { name: 'dkim_verify' },
+      { pass: ['business.amazon.com', 'amazonses.com'] },
+    )
     this.plugin.from_phish(() => {
-      const r = this.connection.transaction.results.get('haraka-plugin-headers');
+      const r = this.connection.transaction.results.get('haraka-plugin-headers')
       // console.log(r)
       assert.deepEqual(r.fail, [])
-      assert.deepEqual(r.pass, ['from_phish']);
+      assert.deepEqual(r.pass, ['from_phish'])
       done()
-    }, this.connection);
+    }, this.connection)
   })
-
 })

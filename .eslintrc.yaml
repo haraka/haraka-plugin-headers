@@ -6,6 +6,3 @@ env:
 
 extends:
   - '@haraka'
-
-rules:
-  indent: [2, 2, {"SwitchCase": 1}]

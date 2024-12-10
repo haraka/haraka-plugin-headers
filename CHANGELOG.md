@@ -1,6 +1,4 @@
-
 ### Unreleased
-
 
 ### [1.0.5] - 2024-12-10
 
@@ -13,8 +11,7 @@
 ### [1.0.4] - 2023-12-12
 
 - ci: publish updates, shared test actions
-- doc(README): formatting 
-
+- doc(README): formatting
 
 ### [1.0.3] - 2022-06-05
 
@@ -25,13 +22,11 @@
 - ci(codeclimate): relax some checks
 - doc: fixes for config name
 
-
 ### 1.0.2 - 2020-08-22
 
 - additional test
 - updated test to newer JS standards
 - don't call tests that aren't enabled in config (performance)
-
 
 ### 1.0.0 - 2020-07-28
 
