@@ -20,7 +20,7 @@ beforeEach(function (done) {
   catch (ignore) {}
 
   this.connection = fixtures.connection.createConnection();
-  this.connection.transaction = fixtures.transaction.createTransaction();
+  this.connection.init_transaction()
 
   done()  // if a test hangs, assure you called done()
 })
