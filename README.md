@@ -1,8 +1,6 @@
 [![CI Tests][ci-img]][ci-url]
 [![Code Climate][clim-img]][clim-url]
 
-[![NPM][npm-img]][npm-url]
-
 # haraka-plugin-headers
 
 This plugin performs a variety of mail header inspections.
@@ -31,26 +29,26 @@ $EDITOR config/headers.ini
 
 The next two tests encompass the RFC 5322 checks:
 
-## duplicate\_singular
+## duplicate_singular
 
 Assure that all the singular headers are present only once. The list of
 headers can be adjusted in config/headers.ini:
 
     * singular=Date,From,Sender,Reply-To,To,Cc,Bcc,Message-Id,In-Reply-To,References,Subject
 
-## missing\_required
+## missing_required
 
 Assuring that all the required headers are present. The list of required
 headers can be altered in config/headers.ini:
 
     required=From,Date
 
-## invalid\_return\_path
+## invalid_return_path
 
 Messages arriving via the internet should not have a Return-Path header set.
 This checks for that header (unless connection.relaying is set).
 
-## invalid\_date
+## invalid_date
 
 Checks the date header and makes sure it's somewhat sane. By default, the date
 cannot be more than 2 days in the future nor 15 days in the past. These can be
@@ -61,12 +59,12 @@ date_future_days=2
 date_past_days=15
 ```
 
-## user\_agent
+## user_agent
 
 Attempt to determine the User-Agent that generated the email. A UA is
 determinable on about 70% of hammy messages.
 
-## direct\_to\_mx
+## direct_to_mx
 
 Counts the received headers. If there aren't at least two, then the MUA is
 attempting direct delivery to us instead of via their outbound SMTP server.
@@ -74,12 +72,12 @@ This is typical of spam, our own users sending outbound email (which bypasses
 this test), and machine generated messages like Facebook/Twitter
 notifications.
 
-## from\_match
+## from_match
 
 See if the header From domain matches the envelope FROM domain. There are many
 legit reasons to not match, but matching domains are far more frequent in ham.
 
-## mailing\_list
+## mailing_list
 
 Attempt to determine if this message was sent via an email list. This is very
 rudimentary at present and only detects the most common email lists.
@@ -89,7 +87,7 @@ of the minority (~10%) of ham which fails SPF and DKIM tests. This MLM
 detector is a building block in the ability to detect mail from forwarders
 and assess their reputability.
 
-## from\_phish
+## from_phish
 
 A common form of phishing is spamming the From display name with the domain name of the popular entity whose accounts they're phishing for. This tests the domains in the [phish_domains] configuration section. If that domains appears in the From header, it must also appear in the envelope sender address.
 
@@ -125,11 +123,9 @@ messages to be rejected:
 missing_required=false
 ```
 
-
 <!-- leave these buried at the bottom of the document -->
+
 [ci-img]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml
 [clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-headers/badges/gpa.svg
 [clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-headers
-[npm-img]: https://nodei.co/npm/haraka-plugin-headers.png
-[npm-url]: https://www.npmjs.com/package/haraka-plugin-headers
