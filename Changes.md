@@ -14,9 +14,9 @@
 
 #### Changed
 
-- 
-
-
+- populate [files] in package.json.
+- dep: eslint-plugin-haraka -> @haraka/eslint-config
+- lint: remove duplicate / stale rules from .eslintrc
 
 ### [1.0.4] - 2023-12-12
 
