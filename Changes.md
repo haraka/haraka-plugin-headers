@@ -2,6 +2,22 @@
 ### Unreleased
 
 
+### [1.0.5] - 2024-12-10
+
+#### Added
+
+- 
+
+#### Fixed
+
+- 
+
+#### Changed
+
+- 
+
+
+
 ### [1.0.4] - 2023-12-12
 
 - ci: publish updates, shared test actions
@@ -32,3 +48,4 @@
 
 [1.0.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.3
 [1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.4
+[1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.5
