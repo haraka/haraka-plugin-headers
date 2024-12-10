@@ -6,7 +6,7 @@
 
 #### Added
 
-- 
+- doc(CONTRIBUTORS): added
 
 #### Fixed
 
@@ -17,6 +17,7 @@
 - populate [files] in package.json.
 - dep: eslint-plugin-haraka -> @haraka/eslint-config
 - lint: remove duplicate / stale rules from .eslintrc
+- doc: mv Changes.md CHANGELOG.md
 
 ### [1.0.4] - 2023-12-12
 
