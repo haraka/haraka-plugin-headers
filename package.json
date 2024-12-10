@@ -13,9 +13,9 @@
     "prettier:fix": "npx prettier . --write --log-level=warn",
     "lint": "npx eslint@^8 *.js test",
     "lint:fix": "npx eslint@^8 --fix *.js test",
-    "test": "npx mocha",
+    "test": "npx mocha@^10",
     "versions": "npx dependency-version-checker check",
-    "versionsup": "npx dependency-version-checker update"
+    "versions:fix": "npx dependency-version-checker update"
   },
   "repository": {
     "type": "git",
