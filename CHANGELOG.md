@@ -1,4 +1,12 @@
+# Changelog
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
 ### Unreleased
+
+### [1.0.6] - 2025-01-30
+
+- chore: update codeclimate config to eslint-8
 
 ### [1.0.5] - 2024-12-10
 
@@ -34,6 +42,8 @@
 - repackaged from Haraka
 - added from_phish
 
+[1.0.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.0
 [1.0.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.3
-[1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.4
-[1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/1.0.5
+[1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.4
+[1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.5
+[1.0.6]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.6
