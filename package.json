@@ -11,8 +11,8 @@
     "format": "npm run prettier:fix && npm run lint:fix",
     "prettier": "npx prettier . --check",
     "prettier:fix": "npx prettier . --write --log-level=warn",
-    "lint": "npx eslint@^8 *.js test",
-    "lint:fix": "npx eslint@^8 --fix *.js test",
+    "lint": "npx eslint@^9 *.js test",
+    "lint:fix": "npx eslint@^9 --fix *.js test",
     "test": "npx mocha@^11",
     "versions": "npx dependency-version-checker check",
     "versions:fix": "npx dependency-version-checker update"
@@ -40,5 +40,9 @@
     "haraka-tld": "^1.2.3",
     "address-rfc2821": "^2.1.2",
     "address-rfc2822": "^2.2.3"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": false
   }
 }

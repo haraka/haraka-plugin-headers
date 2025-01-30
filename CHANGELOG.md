@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.0.6] - 2025-01-30
 
-- chore: update codeclimate config to eslint-8
+- deps(eslint): upgrade to v9
+- style(prettier): moved config into package.json
 
 ### [1.0.5] - 2024-12-10
 
