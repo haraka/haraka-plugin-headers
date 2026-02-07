@@ -1,38 +1,27 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld')
 
-const phish_targets = []
-
 exports.register = function () {
   this.load_headers_ini()
 
   try {
     this.addrparser = require('address-rfc2822')
   } catch (e) {
-    this.logerror(
-      "unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n",
-    )
+    this.logerror("unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n")
   }
 
-  if (this.cfg.check.duplicate_singular)
-    this.register_hook('data_post', 'duplicate_singular')
-  if (this.cfg.check.missing_required)
-    this.register_hook('data_post', 'missing_required')
-  if (this.cfg.check.invalid_return_path)
-    this.register_hook('data_post', 'invalid_return_path')
-  if (this.cfg.check.invalid_date)
-    this.register_hook('data_post', 'invalid_date')
+  if (this.cfg.check.duplicate_singular) this.register_hook('data_post', 'duplicate_singular')
+  if (this.cfg.check.missing_required) this.register_hook('data_post', 'missing_required')
+  if (this.cfg.check.invalid_return_path) this.register_hook('data_post', 'invalid_return_path')
+  if (this.cfg.check.invalid_date) this.register_hook('data_post', 'invalid_date')
   if (this.cfg.check.user_agent) this.register_hook('data_post', 'user_agent')
-  if (this.cfg.check.direct_to_mx)
-    this.register_hook('data_post', 'direct_to_mx')
+  if (this.cfg.check.direct_to_mx) this.register_hook('data_post', 'direct_to_mx')
 
   if (this.addrparser) {
     if (this.cfg.check.from_match) this.register_hook('data_post', 'from_match')
-    if (this.cfg.check.delivered_to)
-      this.register_hook('data_post', 'delivered_to')
+    if (this.cfg.check.delivered_to) this.register_hook('data_post', 'delivered_to')
   }
-  if (this.cfg.check.mailing_list)
-    this.register_hook('data_post', 'mailing_list')
+  if (this.cfg.check.mailing_list) this.register_hook('data_post', 'mailing_list')
   if (this.cfg.check.from_phish) this.register_hook('data_post', 'from_phish')
 }
 
@@ -66,10 +55,30 @@ exports.load_headers_ini = function () {
     },
   )
 
-  for (const d in plugin.cfg.phish_domains) {
-    phish_targets.push(new RegExp(d.replace('.', '[.]'), 'i'))
+  this.phish_targets = []
+
+  if (plugin.cfg.phish_domains !== undefined) {
+    this.logerror("deprecated setting, update headers.ini per the README")
+
+    for (const domain in plugin.cfg.phish_domains) {
+      const brand = domain.split('.').slice(0, -1).join('.')
+      this.phish_targets.push({
+        brand,
+        domain,
+        pattern: new RegExp(domain.replace('.', '[.]'), 'i'),
+      })
+    }
   }
-  // console.log(phish_targets)
+
+  for (const [brand, domain] of Object.entries(plugin.cfg.phish_targets)) {
+    // Use word boundaries to avoid false positives
+    const escaped_name = brand.toLowerCase().replace(/[.*+?^${}()|[\\\]]/g, '\\$&')
+    this.phish_targets.push({
+      brand: brand.toLowerCase(),
+      pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
+      domain
+    })
+  }
 }
 
 exports.duplicate_singular = function (next, connection) {
@@ -79,19 +88,7 @@ exports.duplicate_singular = function (next, connection) {
   const singular =
     plugin.cfg.main.singular !== undefined
       ? plugin.cfg.main.singular.split(',')
-      : [
-          'Date',
-          'From',
-          'Sender',
-          'Reply-To',
-          'To',
-          'Cc',
-          'Bcc',
-          'Message-Id',
-          'In-Reply-To',
-          'References',
-          'Subject',
-        ]
+      : ['Date', 'From', 'Sender', 'Reply-To', 'To', 'Cc', 'Bcc', 'Message-Id', 'In-Reply-To', 'References', 'Subject']
 
   const failures = []
   for (const name of singular) {
@@ -105,10 +102,7 @@ exports.duplicate_singular = function (next, connection) {
 
   if (failures.length) {
     if (plugin.cfg.reject.duplicate_singular) {
-      return next(
-        DENY,
-        `Only one ${failures[0]} header allowed. See RFC 5322, Section 3.6`,
-      )
+      return next(DENY, `Only one ${failures[0]} header allowed. See RFC 5322, Section 3.6`)
     }
     return next()
   }
@@ -121,10 +115,7 @@ exports.missing_required = function (next, connection) {
   const plugin = this
 
   // Enforce RFC 5322 Section 3.6, Headers that MUST be present
-  const required =
-    plugin.cfg.main.required !== undefined
-      ? plugin.cfg.main.required.split(',')
-      : ['Date', 'From']
+  const required = plugin.cfg.main.required !== undefined ? plugin.cfg.main.required.split(',') : ['Date', 'From']
 
   const failures = []
   for (const h of required) {
@@ -164,10 +155,7 @@ exports.invalid_return_path = function (next, connection) {
         emit: true,
       })
       if (plugin.cfg.reject.invalid_return_path) {
-        return next(
-          DENY,
-          'outgoing mail must not have a Return-Path header (RFC 5321)',
-        )
+        return next(DENY, 'outgoing mail must not have a Return-Path header (RFC 5321)')
       }
       return next()
     }
@@ -194,10 +182,7 @@ exports.invalid_date = function (next, connection) {
   connection.logdebug(plugin, `message date: ${msg_date}`)
   msg_date = Date.parse(msg_date)
 
-  const date_future_days =
-    plugin.cfg.main.date_future_days !== undefined
-      ? plugin.cfg.main.date_future_days
-      : 2
+  const date_future_days = plugin.cfg.main.date_future_days !== undefined ? plugin.cfg.main.date_future_days : 2
 
   if (date_future_days > 0) {
     const too_future = new Date()
@@ -214,10 +199,7 @@ exports.invalid_date = function (next, connection) {
     }
   }
 
-  const date_past_days =
-    plugin.cfg.main.date_past_days !== undefined
-      ? plugin.cfg.main.date_past_days
-      : 15
+  const date_past_days = plugin.cfg.main.date_past_days !== undefined ? plugin.cfg.main.date_past_days : 15
 
   if (date_past_days > 0) {
     const too_old = new Date()
@@ -252,13 +234,7 @@ exports.user_agent = function (next, connection) {
   // X-MS-Has-Attach: Outlook 15
 
   // Check for User-Agent
-  const headers = [
-    'user-agent',
-    'x-mailer',
-    'x-mua',
-    'x-yahoo-newman-property',
-    'x-ms-has-attach',
-  ]
+  const headers = ['user-agent', 'x-mailer', 'x-mua', 'x-yahoo-newman-property', 'x-ms-has-attach']
   // for (const h in headers) {}
   for (const name of headers) {
     const header = connection.transaction.header.get(name)
@@ -331,10 +307,7 @@ exports.from_match = function (next, connection) {
   try {
     hdr_addr = plugin.addrparser.parse(hdr_from)[0]
   } catch (e) {
-    connection.logwarn(
-      plugin,
-      `parsing "${hdr_from.trim()}" with address-rfc2822 plugin returned error: ${e.message}`,
-    )
+    connection.logwarn(plugin, `parsing "${hdr_from.trim()}" with address-rfc2822 plugin returned error: ${e.message}`)
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
     })
@@ -359,11 +332,7 @@ exports.from_match = function (next, connection) {
   const msg_dom = tlds.get_organizational_domain(hdr_addr.host())
   if (env_dom && msg_dom && env_dom.toLowerCase() === msg_dom.toLowerCase()) {
     const fcrdns = connection.results.get('fcrdns')
-    if (
-      fcrdns &&
-      fcrdns.fcrdns &&
-      new RegExp(`${msg_dom}\\b`, 'i').test(fcrdns.fcrdns)
-    ) {
+    if (fcrdns && fcrdns.fcrdns && new RegExp(`${msg_dom}\\b`, 'i').test(fcrdns.fcrdns)) {
       extra.push('fcrdns')
     }
     const helo = connection.results.get('helo.checks')
@@ -472,53 +441,97 @@ exports.mailing_list = function (next, connection) {
 }
 
 exports.from_phish = function (next, connection) {
-  const plugin = this
   if (!connection.transaction) return next()
 
-  // check the header From display name for common phish domains
-  const hdr_from = connection.transaction.header.get_decoded('From')
-  if (!hdr_from) {
-    connection.transaction.results.add(plugin, { skip: 'from_phish(missing)' })
-    return next()
-  }
+  try {
+    let hdr_from = connection.transaction.header.get_decoded('from')
 
-  for (const addr of phish_targets) {
-    if (!addr.test(hdr_from)) continue // not a sender match
-    if (!exports.has_auth_match(addr, connection)) {
-      connection.transaction.results.add(plugin, {
-        fail: `from_phish(${hdr_from}`,
-      })
-      if (plugin.cfg.reject.from_phish)
-        return next(DENY, `Phishing message detected`)
+    if (!hdr_from) {
+      connection.transaction.results.add(this, { skip: 'from_phish(missing)' })
       return next()
     }
-  }
 
-  connection.transaction.results.add(plugin, { pass: 'from_phish' })
-  next()
+    // extract the from domain by parsing the From header, grabbing the first address, extracting the
+    // portion following the last @, and reducing that to an Org Domain
+    let hdr_from_domain = tlds.get_organizational_domain(this.addrparser.parse(hdr_from)[0].address.split('@').at(-1))
+
+    for (const pt of this.phish_targets) {
+
+      if (pt.pattern.test(this.normalize_lookalikes(hdr_from))) {
+
+        if (exports.has_auth_match(pt.domain, connection)) continue;
+
+        if (hdr_from_domain !== pt.domain) {
+
+          connection.transaction.results.add(this, {
+            fail: `from_phish(${pt.brand})`,
+            msg: `'${pt.brand}' found when domain is '${hdr_from_domain}' instead of '${pt.domain}'`
+          })
+
+          if (this.cfg.reject.from_phish) {
+            return next(DENY, `Phishing message appears to impersonate ${pt.domain}`)
+          }
+          return next()
+        }
+      }
+    }
+
+    connection.transaction.results.add(this, { pass: 'from_phish' })
+    next()
+  } catch (err) {
+    connection.transaction.results.add(this, { err: `from_phish: ${err}` })
+    next()
+  }
 }
 
-exports.has_auth_match = function (re, conn) {
-  // check domain RegEx against spf, dkim, and env sender for a match
+exports.has_auth_match = function (domain, conn) {
+
+  // check domain RegEx against spf, dkim, and fcrdns for a match
+  const re = new RegExp(domain.replace('.', '[.]'), 'i')
 
   const spf = conn.transaction.results.get('spf') // only check mfrom
   if (spf && re.test(spf.pass)) return true
 
   // try DKIM via results
-  const dkim = conn.transaction.results.get('dkim_verify')
+  const dkim = conn.transaction.results.get('dkim')
   if (dkim && re.test(dkim.pass)) return true
 
   // fallback DKIM via notes
   const dkim_note = conn.transaction.notes.dkim_results
   if (dkim_note) {
-    const passes = dkim_note.filter(
-      (r) => r.result === 'pass' && re.test(r.domain),
-    )
+    const passes = dkim_note.filter((r) => r.result === 'pass' && re.test(r.domain))
     if (passes.length) return true
   }
 
-  const env_addr = conn.transaction.mail_from
-  if (env_addr && re.test(env_addr)) return true
+  if (this.has_fcrdns_match(domain, conn)) return true
 
   return false
+}
+
+exports.normalize_lookalikes = function (text) {
+  return text.toLowerCase()
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'i')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/\)/g, 'g')
+    .replace(/\|/g, 'l')
+    .replace(/\$/g, 's')
+}
+
+exports.has_fcrdns_match = function (sender_od, connection) {
+  const fcrdns = connection.results.get('fcrdns')
+  if (!fcrdns) return false
+  if (!fcrdns.fcrdns) return false
+
+  let mail_host = fcrdns.fcrdns
+  if (Array.isArray(mail_host)) mail_host = fcrdns.fcrdns[0]
+
+  const fcrdns_od = tlds.get_organizational_domain(mail_host)
+  if (fcrdns_od !== sender_od) return false
+
+  return true
 }

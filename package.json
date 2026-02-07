@@ -1,6 +1,6 @@
 {
   "name": "haraka-plugin-headers",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Haraka plugin that performs tests on email headers",
   "main": "index.js",
   "files": [
@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-headers#readme",
   "devDependencies": {
-    "@haraka/eslint-config": "^2.0.3",
+    "@haraka/eslint-config": "^2.0.2",
     "haraka-test-fixtures": "^1.3.10"
   },
   "dependencies": {

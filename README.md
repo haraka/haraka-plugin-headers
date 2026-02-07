@@ -25,7 +25,7 @@ $EDITOR config/headers.ini
 
 ## RFC 5322 Section 3.6:
 
-    All messages MUST have a 'Date' and 'From' header and a message may not contain more than one 'Date', 'From', 'Sender', 'Reply-To', 'To', 'Cc', 'Bcc', 'Message-Id', 'In-Reply-To', 'References' or 'Subject' header.
+All messages MUST have a 'Date' and 'From' header and a message may not contain more than one 'Date', 'From', 'Sender', 'Reply-To', 'To', 'Cc', 'Bcc', 'Message-Id', 'In-Reply-To', 'References' or 'Subject' header.
 
 The next two tests encompass the RFC 5322 checks:
 
@@ -89,14 +89,15 @@ and assess their reputability.
 
 ## from_phish
 
-A common form of phishing is spamming the From display name with a well-known brand name. This tests the brands listed in the [phish_targets] configuration section and requires that brands appearing in the From header must originate from that brands domain name.
+A common form of phishing is spamming the From display name with a well-known brand name. This tests the brands listed in the [phish_targets] configuration section and requires that brands appearing in the From header must match from brands domain name.
 
 ```ini
 [phish_targets]
 costco=costco.com
+paypa1=paypal.com
 ```
 
-In the example shown, if the word Costco (or common lookalikes such as c0stc0) appears in the From display name, then the email must also originate from costco.com.
+In the example shown, if the word Costco (or common lookalikes such as c0stc0) appear in the From display name, then the From domain must originate from costco.com.
 
 # Configuration
 
