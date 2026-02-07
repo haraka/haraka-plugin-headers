@@ -70,14 +70,16 @@ exports.load_headers_ini = function () {
     }
   }
 
-  for (const [brand, domain] of Object.entries(plugin.cfg.phish_targets)) {
-    // Use word boundaries to avoid false positives
-    const escaped_name = brand.toLowerCase().replace(/[.*+?^${}()|[\\\]]/g, '\\$&')
-    this.phish_targets.push({
-      brand: brand.toLowerCase(),
-      pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
-      domain,
-    })
+  if (plugin.cfg.phish_targets) {
+    for (const [brand, domain] of Object.entries(plugin.cfg.phish_targets)) {
+      // Use word boundaries to avoid false positives
+      const escaped_name = brand.toLowerCase().replace(/[.*+?^${}()|[\\\]]/g, '\\$&')
+      this.phish_targets.push({
+        brand: brand.toLowerCase(),
+        pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
+        domain,
+      })
+    }
   }
 }
 
