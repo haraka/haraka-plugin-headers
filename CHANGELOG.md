@@ -4,6 +4,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.1.0] - 2026-02-06
+
+- feat(from_phish): rewrote, strengthened and expanded
+  - previous version searched From for a domain match (eg: paypal.com), which let spammers put all sorts of registered trademarks and well-known names in the From header, so long as they ommitted the TLD.
+  - previous version permitted an ENV FROM match, so phishers were welcome to use From: COSTCO <orders@costco.phisher.com> so long as they used the string 'costco.com' anywhere in the Envelope From address.
+  - this version searches for Well Known names in the entire From address. If any are found, the From domain must match the well-known entities domain name
+  - combined with DMARC authentication (against the From header domain), this should greatly reduce messages that spam the name and user portions of the From header.
+  - adds FCrDNS as a form of domain authentication
+- deps(all): bumped to latest
+
 ### [1.0.6] - 2025-01-30
 
 - deps(eslint): upgrade to v9
@@ -48,3 +58,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.0.4]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.4
 [1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.5
 [1.0.6]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.6
+[1.1.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.0
