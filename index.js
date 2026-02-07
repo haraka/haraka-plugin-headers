@@ -58,7 +58,7 @@ exports.load_headers_ini = function () {
   this.phish_targets = []
 
   if (plugin.cfg.phish_domains !== undefined) {
-    this.logerror("deprecated setting, update headers.ini per the README")
+    this.logerror('deprecated setting, update headers.ini per the README')
 
     for (const domain in plugin.cfg.phish_domains) {
       const brand = domain.split('.').slice(0, -1).join('.')
@@ -76,7 +76,7 @@ exports.load_headers_ini = function () {
     this.phish_targets.push({
       brand: brand.toLowerCase(),
       pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
-      domain
+      domain,
     })
   }
 }
@@ -444,7 +444,7 @@ exports.from_phish = function (next, connection) {
   if (!connection.transaction) return next()
 
   try {
-    let hdr_from = connection.transaction.header.get_decoded('from')
+    const hdr_from = connection.transaction.header.get_decoded('from')
 
     if (!hdr_from) {
       connection.transaction.results.add(this, { skip: 'from_phish(missing)' })
@@ -453,19 +453,16 @@ exports.from_phish = function (next, connection) {
 
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
-    let hdr_from_domain = tlds.get_organizational_domain(this.addrparser.parse(hdr_from)[0].address.split('@').at(-1))
+    const hdr_from_domain = tlds.get_organizational_domain(this.addrparser.parse(hdr_from)[0].address.split('@').at(-1))
 
     for (const pt of this.phish_targets) {
-
       if (pt.pattern.test(this.normalize_lookalikes(hdr_from))) {
-
-        if (exports.has_auth_match(pt.domain, connection)) continue;
+        if (exports.has_auth_match(pt.domain, connection)) continue
 
         if (hdr_from_domain !== pt.domain) {
-
           connection.transaction.results.add(this, {
             fail: `from_phish(${pt.brand})`,
-            msg: `'${pt.brand}' found when domain is '${hdr_from_domain}' instead of '${pt.domain}'`
+            msg: `'${pt.brand}' found when domain is '${hdr_from_domain}' instead of '${pt.domain}'`,
           })
 
           if (this.cfg.reject.from_phish) {
@@ -485,7 +482,6 @@ exports.from_phish = function (next, connection) {
 }
 
 exports.has_auth_match = function (domain, conn) {
-
   // check domain RegEx against spf, dkim, and fcrdns for a match
   const re = new RegExp(domain.replace('.', '[.]'), 'i')
 
@@ -509,7 +505,8 @@ exports.has_auth_match = function (domain, conn) {
 }
 
 exports.normalize_lookalikes = function (text) {
-  return text.toLowerCase()
+  return text
+    .toLowerCase()
     .replace(/0/g, 'o')
     .replace(/1/g, 'i')
     .replace(/3/g, 'e')

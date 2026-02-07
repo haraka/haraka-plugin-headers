@@ -322,8 +322,6 @@ describe('has_auth_match', function () {
 })
 
 describe('from_phish', function () {
-
-
   it('passes mfrom match', function (done) {
     this.connection.transaction.mail_from = new Address('<test@example.com>')
     this.connection.transaction.header.add_end('From', '"Test User" <test@example.com>')
