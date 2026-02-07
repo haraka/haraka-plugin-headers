@@ -89,7 +89,14 @@ and assess their reputability.
 
 ## from_phish
 
-A common form of phishing is spamming the From display name with the domain name of the popular entity whose accounts they're phishing for. This tests the domains in the [phish_domains] configuration section. If that domains appears in the From header, it must also appear in the envelope sender address.
+A common form of phishing is spamming the From display name with a well-known brand name. This tests the brands listed in the [phish_targets] configuration section and requires that brands appearing in the From header must originate from that brands domain name.
+
+```ini
+[phish_targets]
+costco=costco.com
+```
+
+In the example shown, if the word Costco (or common lookalikes such as c0stc0) appears in the From display name, then the email must also originate from costco.com.
 
 # Configuration
 

@@ -13,7 +13,7 @@
     "prettier:fix": "npx prettier . --write --log-level=warn",
     "lint": "npx eslint@^9 *.js test",
     "lint:fix": "npx eslint@^9 --fix *.js test",
-    "test": "npx mocha@^11",
+    "test": "npx mocha",
     "versions": "npx dependency-version-checker check",
     "versions:fix": "npx dependency-version-checker update"
   },
@@ -33,15 +33,16 @@
   },
   "homepage": "https://github.com/haraka/haraka-plugin-headers#readme",
   "devDependencies": {
-    "@haraka/eslint-config": "^2.0.2",
-    "haraka-test-fixtures": "^1.3.8"
+    "@haraka/eslint-config": "^2.0.3",
+    "haraka-test-fixtures": "^1.3.10"
   },
   "dependencies": {
-    "haraka-tld": "^1.2.3",
-    "address-rfc2821": "^2.1.2",
+    "haraka-tld": "^1.3.0",
+    "address-rfc2821": "^2.1.4",
     "address-rfc2822": "^2.2.3"
   },
   "prettier": {
+    "printWidth": 120,
     "singleQuote": true,
     "semi": false
   }
