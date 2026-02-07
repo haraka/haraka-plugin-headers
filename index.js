@@ -6,7 +6,7 @@ exports.register = function () {
 
   try {
     this.addrparser = require('address-rfc2822')
-  } catch (e) {
+  } catch (ignore) {
     this.logerror("unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n")
   }
 
