@@ -10,7 +10,7 @@ const fixtures = require('haraka-test-fixtures')
 //    assert: https://nodejs.org/api/assert.html
 //    mocha: http://mochajs.org
 
-beforeEach(function (done) {
+beforeEach(function () {
   this.plugin = new fixtures.plugin('haraka-plugin-headers')
   this.plugin.register()
 
@@ -20,29 +20,24 @@ beforeEach(function (done) {
 
   this.connection = fixtures.connection.createConnection()
   this.connection.init_transaction()
-
-  done() // if a test hangs, assure you called done()
 })
 
 describe('haraka-plugin-headers', function () {
-  it('loads', function (done) {
+  it('loads', function () {
     assert.ok(this.plugin)
-    done()
   })
 })
 
 describe('load_headers_ini', function () {
-  it('loads headers.ini from config/headers.ini', function (done) {
+  it('loads headers.ini from config/headers.ini', function () {
     this.plugin.load_headers_ini()
     // console.log(this.plugin.cfg);
     assert.ok(this.plugin.cfg)
-    done()
   })
 
-  it('initializes enabled boolean', function (done) {
+  it('initializes enabled boolean', function () {
     this.plugin.load_headers_ini()
     assert.equal(this.plugin.cfg.check.duplicate_singular, true)
-    done()
   })
 })
 
