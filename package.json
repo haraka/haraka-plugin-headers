@@ -13,7 +13,7 @@
     "prettier:fix": "npx prettier . --write --log-level=warn",
     "lint": "npx eslint *.js test",
     "lint:fix": "npx eslint --fix *.js test",
-    "test": "npx mocha",
+    "test": "node --test test/*.js",
     "versions": "npx npm-dep-mgr check",
     "versions:fix": "npx npm-dep-mgr update",
     "test:coverage": "npx c8 --reporter=text --reporter=text-summary npm test"
