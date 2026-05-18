@@ -4,9 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-### [1.2.0] - 2026-05-15
+### [1.2.0] - 2026-05-20
 
 - dep(address-rfc2822) -> @haraka/email-address
+
+### [1.1.1] - 2026-05-15
+
 - test: convert runner to node:test
 - test: remove unnecessary done callbacks (#8)
 
@@ -65,4 +68,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.5
 [1.0.6]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.6
 [1.1.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.0
+[1.1.1]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.1
 [1.2.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.2.0

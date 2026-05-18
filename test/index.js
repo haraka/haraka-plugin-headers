@@ -453,3 +453,231 @@ describe('from_phish', () => {
     })
   }
 })
+
+describe('duplicate_singular', () => {
+  it('passes when singular headers are unique', (t, done) => {
+    connection.transaction.add_header('Subject', 'hi')
+    plugin.duplicate_singular((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).pass.includes('duplicate'))
+      done()
+    }, connection)
+  })
+
+  it('records a failure for a duplicated singular header', (t, done) => {
+    connection.transaction.add_header('Subject', 'one')
+    connection.transaction.add_header('Subject', 'two')
+    plugin.cfg.reject.duplicate_singular = false
+    plugin.duplicate_singular((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('duplicate:Subject'))
+      done()
+    }, connection)
+  })
+
+  it('DENYs a duplicated singular header when configured', (t, done) => {
+    connection.transaction.add_header('From', 'a@b.com')
+    connection.transaction.add_header('From', 'c@d.com')
+    plugin.cfg.reject.duplicate_singular = true
+    plugin.duplicate_singular((code, msg) => {
+      assert.equal(code, constants.DENY)
+      assert.match(msg, /Only one From header/)
+      done()
+    }, connection)
+  })
+})
+
+describe('missing_required', () => {
+  it('passes when required headers are present', (t, done) => {
+    connection.transaction.add_header('Date', new Date().toUTCString())
+    connection.transaction.add_header('From', 'a@b.com')
+    plugin.missing_required((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).pass.includes('missing'))
+      done()
+    }, connection)
+  })
+
+  it('DENYs when a required header is missing and reject is on', (t, done) => {
+    connection.transaction.add_header('From', 'a@b.com') // no Date
+    plugin.cfg.reject.missing_required = true
+    plugin.missing_required((code, msg) => {
+      assert.equal(code, constants.DENY)
+      assert.match(msg, /Required header 'Date' missing/)
+      done()
+    }, connection)
+  })
+
+  it('only records a failure when reject is off', (t, done) => {
+    connection.transaction.add_header('From', 'a@b.com') // no Date
+    plugin.cfg.reject.missing_required = false
+    plugin.missing_required((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('missing:Date'))
+      done()
+    }, connection)
+  })
+})
+
+describe('invalid_return_path', () => {
+  it('passes when no Return-Path is present', (t, done) => {
+    plugin.invalid_return_path((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).pass.includes('Return-Path'))
+      done()
+    }, connection)
+  })
+
+  it('strips Return-Path on inbound mail', (t, done) => {
+    connection.transaction.add_header('Return-Path', '<a@b.com>')
+    connection.relaying = false
+    plugin.invalid_return_path((code) => {
+      assert.equal(code, undefined)
+      assert.equal(connection.transaction.header.get('Return-Path'), '')
+      done()
+    }, connection)
+  })
+
+  it('DENYs outbound mail carrying a Return-Path when configured', (t, done) => {
+    connection.transaction.add_header('Return-Path', '<a@b.com>')
+    connection.relaying = true
+    plugin.cfg.reject.invalid_return_path = true
+    plugin.invalid_return_path((code, msg) => {
+      assert.equal(code, constants.DENY)
+      assert.match(msg, /must not have a Return-Path/)
+      done()
+    }, connection)
+  })
+
+  it('only flags outbound Return-Path when reject is off', (t, done) => {
+    connection.transaction.add_header('Return-Path', '<a@b.com>')
+    connection.relaying = true
+    plugin.cfg.reject.invalid_return_path = false
+    plugin.invalid_return_path((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('Return-Path'))
+      done()
+    }, connection)
+  })
+})
+
+describe('invalid_date', () => {
+  const daysFromNow = (n) => new Date(Date.now() + n * 24 * 3600 * 1000).toUTCString()
+
+  it('passes with no Date header', (t, done) => {
+    plugin.invalid_date((code) => {
+      assert.equal(code, undefined)
+      done()
+    }, connection)
+  })
+
+  it('passes a sane Date', (t, done) => {
+    connection.transaction.add_header('Date', new Date().toUTCString())
+    plugin.invalid_date((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).pass.includes('invalid_date'))
+      done()
+    }, connection)
+  })
+
+  it('DENYs a Date too far in the future', (t, done) => {
+    connection.transaction.add_header('Date', daysFromNow(30))
+    plugin.cfg.reject.invalid_date = true
+    plugin.invalid_date((code, msg) => {
+      assert.equal(code, constants.DENY)
+      assert.match(msg, /too far in the future/)
+      done()
+    }, connection)
+  })
+
+  it('DENYs a Date too far in the past', (t, done) => {
+    connection.transaction.add_header('Date', daysFromNow(-60))
+    plugin.cfg.reject.invalid_date = true
+    plugin.invalid_date((code, msg) => {
+      assert.equal(code, constants.DENY)
+      assert.match(msg, /too old/)
+      done()
+    }, connection)
+  })
+
+  it('only flags a bad Date when reject is off', (t, done) => {
+    connection.transaction.add_header('Date', daysFromNow(30))
+    plugin.cfg.reject.invalid_date = false
+    plugin.invalid_date((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('invalid_date(future)'))
+      done()
+    }, connection)
+  })
+
+  it('only flags an old Date when reject is off', (t, done) => {
+    connection.transaction.add_header('Date', daysFromNow(-60))
+    plugin.cfg.reject.invalid_date = false
+    plugin.invalid_date((code) => {
+      assert.equal(code, undefined)
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('invalid_date(past)'))
+      done()
+    }, connection)
+  })
+})
+
+describe('normalize_lookalikes', () => {
+  it('maps homoglyph digits/symbols back to letters', () => {
+    assert.equal(plugin.normalize_lookalikes('4M4Z0N'), 'amazon')
+    assert.equal(plugin.normalize_lookalikes('PayPa|'), 'paypal')
+    assert.equal(plugin.normalize_lookalikes('g$5'), 'gss')
+  })
+})
+
+describe('has_fcrdns_match', () => {
+  const tlds = require('haraka-tld')
+
+  it('false without fcrdns results', () => {
+    assert.equal(plugin.has_fcrdns_match('example.com', connection), false)
+  })
+
+  it('true when fcrdns org-domain matches the sender', async () => {
+    await tlds.ready
+    connection.results.add({ name: 'fcrdns' }, { fcrdns: 'mail.example.com' })
+    assert.equal(plugin.has_fcrdns_match('example.com', connection), true)
+  })
+
+  it('false when fcrdns org-domain differs', async () => {
+    await tlds.ready
+    connection.results.add({ name: 'fcrdns' }, { fcrdns: 'mail.other.com' })
+    assert.equal(plugin.has_fcrdns_match('example.com', connection), false)
+  })
+})
+
+describe('from_match edge cases', () => {
+  const tlds = require('haraka-tld')
+
+  it('fails when there is no envelope sender', (t, done) => {
+    connection.transaction.header.add_end('From', 'a@b.com')
+    plugin.from_match(() => {
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('from_match(null)'))
+      done()
+    }, connection)
+  })
+
+  it('fails when the From header is missing', (t, done) => {
+    connection.transaction.mail_from = new Address('<test@example.com>')
+    plugin.from_match(() => {
+      assert.ok(connection.transaction.results.get(plugin).fail.includes('from_match(missing)'))
+      done()
+    }, connection)
+  })
+
+  it('passes on an organizational-domain match', async () => {
+    await tlds.ready
+    connection.transaction.mail_from = new Address('<bounce@example.com>')
+    connection.transaction.header.add_end('From', 'news@mail.example.com')
+    await new Promise((resolve) =>
+      plugin.from_match(() => {
+        const pass = connection.transaction.results.get(plugin).pass
+        assert.ok(pass.some((p) => p.startsWith('from_match(domain')))
+        resolve()
+      }, connection),
+    )
+  })
+})
