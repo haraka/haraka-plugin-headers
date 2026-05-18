@@ -5,9 +5,9 @@ exports.register = function () {
   this.load_headers_ini()
 
   try {
-    this.addrparser = require('@haraka/email-address')
+    this.addrparser = require('address-rfc2822')
   } catch (ignore) {
-    this.logerror("unable to load @haraka/email-address, try\n\n\t'npm install -g @haraka/email-address'\n\n")
+    this.logerror("unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n")
   }
 
   if (this.cfg.check.duplicate_singular) this.register_hook('data_post', 'duplicate_singular')
@@ -307,7 +307,7 @@ exports.from_match = function (next, connection) {
 
   let hdr_addr
   try {
-    hdr_addr = plugin.addrparser.parseHeader(hdr_from)[0]
+    hdr_addr = plugin.addrparser.parse(hdr_from)[0]
   } catch (e) {
     connection.logwarn(
       plugin,
@@ -327,14 +327,14 @@ exports.from_match = function (next, connection) {
     return next()
   }
 
-  if (env_addr.address.toLowerCase() === hdr_addr.address.toLowerCase()) {
+  if (env_addr.address().toLowerCase() === hdr_addr.address.toLowerCase()) {
     connection.transaction.results.add(plugin, { pass: 'from_match' })
     return next()
   }
 
   const extra = ['domain']
   const env_dom = tlds.get_organizational_domain(env_addr.host)
-  const msg_dom = tlds.get_organizational_domain(hdr_addr.host)
+  const msg_dom = tlds.get_organizational_domain(hdr_addr.host())
   if (env_dom && msg_dom && env_dom.toLowerCase() === msg_dom.toLowerCase()) {
     const fcrdns = connection.results.get('fcrdns')
     if (fcrdns && fcrdns.fcrdns && new RegExp(`${msg_dom}\\b`, 'i').test(fcrdns.fcrdns)) {
@@ -368,7 +368,7 @@ exports.delivered_to = function (next, connection) {
 
   const rcpts = connection.transaction.rcpt_to
   for (const rcptElement of rcpts) {
-    const rcpt = rcptElement.address
+    const rcpt = rcptElement.address()
     if (rcpt !== del_to) continue
     connection.transaction.results.add(plugin, {
       emit: true,
@@ -459,7 +459,7 @@ exports.from_phish = function (next, connection) {
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
     const hdr_from_domain = tlds.get_organizational_domain(
-      this.addrparser.parseHeader(hdr_from)[0].address.split('@').at(-1),
+      this.addrparser.parseHeader(hdr_from)[0].address().split('@').at(-1),
     )
 
     for (const pt of this.phish_targets) {
