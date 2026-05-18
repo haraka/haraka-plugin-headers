@@ -1,5 +1,5 @@
 // node.js built-in modules
-const assert = require('assert')
+const assert = require('node:assert')
 
 // npm modules
 const Address = require('address-rfc2821').Address
@@ -292,27 +292,23 @@ describe('delivered_to', function () {
 })
 
 describe('has_auth_match', function () {
-  it('detects an absense of auth data', function (done) {
+  it('detects an absense of auth data', function () {
     assert.equal(this.plugin.has_auth_match('test.com', this.connection), false)
-    done()
   })
 
-  it('detects a passed SPF auth', function (done) {
+  it('detects a passed SPF auth', function () {
     this.connection.transaction.results.add({ name: 'spf' }, { pass: 'test.com' })
     assert.equal(this.plugin.has_auth_match('test.com', this.connection), true)
-    done()
   })
 
-  it('detects a passed DKIM auth (notes)', function (done) {
+  it('detects a passed DKIM auth (notes)', function () {
     this.connection.transaction.notes.dkim_results = [{ result: 'pass', domain: 'test.com' }]
     assert.equal(this.plugin.has_auth_match('test.com', this.connection), true)
-    done()
   })
 
-  it('detects a passed DKIM auth (results)', function (done) {
+  it('detects a passed DKIM auth (results)', function () {
     this.connection.transaction.results.add({ name: 'dkim' }, { pass: 'test.com' })
     assert.equal(this.plugin.has_auth_match('test.com', this.connection), true)
-    done()
   })
 })
 
