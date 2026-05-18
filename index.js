@@ -17,14 +17,10 @@ function domain_suffix_match(host, domain) {
   return h === d || h.endsWith(`.${d}`)
 }
 
+const { parseHeader } = require('@haraka/email-address')
+
 exports.register = function () {
   this.load_headers_ini()
-
-  try {
-    this.addrparser = require('address-rfc2822')
-  } catch (ignore) {
-    this.logerror("unable to load address-rfc2822, try\n\n\t'npm install -g address-rfc2822'\n\n")
-  }
 
   if (this.cfg.check.duplicate_singular) this.register_hook('data_post', 'duplicate_singular')
   if (this.cfg.check.missing_required) this.register_hook('data_post', 'missing_required')
@@ -33,10 +29,8 @@ exports.register = function () {
   if (this.cfg.check.user_agent) this.register_hook('data_post', 'user_agent')
   if (this.cfg.check.direct_to_mx) this.register_hook('data_post', 'direct_to_mx')
 
-  if (this.addrparser) {
-    if (this.cfg.check.from_match) this.register_hook('data_post', 'from_match')
-    if (this.cfg.check.delivered_to) this.register_hook('data_post', 'delivered_to')
-  }
+  if (this.cfg.check.from_match) this.register_hook('data_post', 'from_match')
+  if (this.cfg.check.delivered_to) this.register_hook('data_post', 'delivered_to')
   if (this.cfg.check.mailing_list) this.register_hook('data_post', 'mailing_list')
   if (this.cfg.check.from_phish) this.register_hook('data_post', 'from_phish')
 }
@@ -332,11 +326,11 @@ exports.from_match = function (next, connection) {
 
   let hdr_addr
   try {
-    hdr_addr = plugin.addrparser.parse(hdr_from)[0]
+    hdr_addr = parseHeader(hdr_from)[0]
   } catch (e) {
     connection.logwarn(
       plugin,
-      `parsing "${exports.sanitize_hdr(hdr_from.trim())}" with address-rfc2822 plugin returned error: ${e.message}`,
+      `parsing "${exports.sanitize_hdr(hdr_from.trim())}" with @haraka/email-address returned error: ${e.message}`,
     )
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
@@ -352,14 +346,14 @@ exports.from_match = function (next, connection) {
     return next()
   }
 
-  if (env_addr.address().toLowerCase() === hdr_addr.address.toLowerCase()) {
+  if (env_addr.address.toLowerCase() === hdr_addr.address.toLowerCase()) {
     connection.transaction.results.add(plugin, { pass: 'from_match' })
     return next()
   }
 
   const extra = ['domain']
   const env_dom = tlds.get_organizational_domain(env_addr.host)
-  const msg_dom = tlds.get_organizational_domain(hdr_addr.host())
+  const msg_dom = tlds.get_organizational_domain(hdr_addr.host)
   if (env_dom && msg_dom && env_dom.toLowerCase() === msg_dom.toLowerCase()) {
     const fcrdns = connection.results.get('fcrdns')
     const fcrdns_host = fcrdns && (Array.isArray(fcrdns.fcrdns) ? fcrdns.fcrdns[0] : fcrdns.fcrdns)
@@ -394,7 +388,7 @@ exports.delivered_to = function (next, connection) {
 
   const rcpts = connection.transaction.rcpt_to
   for (const rcptElement of rcpts) {
-    const rcpt = rcptElement.address()
+    const rcpt = rcptElement.address
     if (rcpt !== del_to) continue
     connection.transaction.results.add(plugin, {
       emit: true,
@@ -484,12 +478,12 @@ exports.from_phish = function (next, connection) {
 
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
-    const parsed_from = this.addrparser.parse(hdr_from)
+    const parsed_from = parseHeader(hdr_from)
     if (!parsed_from || !parsed_from[0]) {
       connection.transaction.results.add(this, { fail: 'from_phish(unparseable)' })
       return next()
     }
-    const hdr_from_domain = tlds.get_organizational_domain(parsed_from[0].address().split('@').at(-1))
+    const hdr_from_domain = tlds.get_organizational_domain(parsed_from[0].address.split('@').at(-1))
 
     for (const pt of this.phish_targets) {
       if (pt.pattern.test(this.normalize_lookalikes(hdr_from))) {
