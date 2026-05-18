@@ -309,7 +309,10 @@ exports.from_match = function (next, connection) {
   try {
     hdr_addr = plugin.addrparser.parse(hdr_from)[0]
   } catch (e) {
-    connection.logwarn(plugin, `parsing "${hdr_from.trim()}" with address-rfc2822 plugin returned error: ${e.message}`)
+    connection.logwarn(
+      plugin,
+      `parsing "${hdr_from.trim()}" with @haraka/email-address plugin returned error: ${e.message}`,
+    )
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
     })
@@ -455,7 +458,9 @@ exports.from_phish = function (next, connection) {
 
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
-    const hdr_from_domain = tlds.get_organizational_domain(this.addrparser.parse(hdr_from)[0].address.split('@').at(-1))
+    const hdr_from_domain = tlds.get_organizational_domain(
+      this.addrparser.parseHeader(hdr_from)[0].address().split('@').at(-1),
+    )
 
     for (const pt of this.phish_targets) {
       if (pt.pattern.test(this.normalize_lookalikes(hdr_from))) {
