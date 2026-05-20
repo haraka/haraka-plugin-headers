@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.1.3] - 2026-05-20
+
+
 ### [1.1.1] - 2026-05-15
 
 - test: convert runner to node:test
@@ -65,3 +68,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.0.6]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.6
 [1.1.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.0
 [1.1.1]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.1
+[1.1.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.3

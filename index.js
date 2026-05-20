@@ -309,10 +309,7 @@ exports.from_match = function (next, connection) {
   try {
     hdr_addr = plugin.addrparser.parse(hdr_from)[0]
   } catch (e) {
-    connection.logwarn(
-      plugin,
-      `parsing "${hdr_from.trim()}" with @haraka/email-address plugin returned error: ${e.message}`,
-    )
+    connection.logwarn(plugin, `parsing "${hdr_from.trim()}" with address-rfc2822 plugin returned error: ${e.message}`)
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
     })
@@ -400,10 +397,10 @@ exports.mailing_list = function (next, connection) {
   let found_mlm = 0
   const txr = connection.transaction.results
 
-  Object.keys(mlms).forEach((name) => {
+  for (const name of Object.keys(mlms)) {
     const header = connection.transaction.header.get(name)
     if (!header) {
-      return
+      continue
     } // header not present
     for (const j of mlms[name]) {
       if (j.start) {
@@ -438,7 +435,7 @@ exports.mailing_list = function (next, connection) {
         continue
       }
     }
-  })
+  }
   if (found_mlm) return next()
 
   connection.transaction.results.add(plugin, { msg: 'not MLM' })
@@ -459,7 +456,7 @@ exports.from_phish = function (next, connection) {
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
     const hdr_from_domain = tlds.get_organizational_domain(
-      this.addrparser.parseHeader(hdr_from)[0].address().split('@').at(-1),
+      this.addrparser.parse(hdr_from)[0].address().split('@').at(-1),
     )
 
     for (const pt of this.phish_targets) {
