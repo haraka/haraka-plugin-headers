@@ -1,6 +1,22 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld')
 
+exports.escape_regex = function (s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+exports.sanitize_hdr = function (s) {
+  // eslint-disable-next-line no-control-regex
+  return String(s).replace(/[\x00-\x1f\x7f]/g, '?')
+}
+
+function domain_suffix_match(host, domain) {
+  if (!host || !domain) return false
+  const h = String(host).toLowerCase()
+  const d = String(domain).toLowerCase()
+  return h === d || h.endsWith(`.${d}`)
+}
+
 exports.register = function () {
   this.load_headers_ini()
 
@@ -65,7 +81,7 @@ exports.load_headers_ini = function () {
       this.phish_targets.push({
         brand,
         domain,
-        pattern: new RegExp(domain.replace('.', '[.]'), 'i'),
+        pattern: new RegExp(exports.escape_regex(domain), 'i'),
       })
     }
   }
@@ -73,7 +89,7 @@ exports.load_headers_ini = function () {
   if (plugin.cfg.phish_targets) {
     for (const [brand, domain] of Object.entries(plugin.cfg.phish_targets)) {
       // Use word boundaries to avoid false positives
-      const escaped_name = brand.toLowerCase().replace(/[.*+?^${}()|[\\\]]/g, '\\$&')
+      const escaped_name = exports.escape_regex(brand.toLowerCase())
       this.phish_targets.push({
         brand: brand.toLowerCase(),
         pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
@@ -178,11 +194,20 @@ exports.invalid_date = function (next, connection) {
   const plugin = this
 
   // Assure Date header value is [somewhat] sane
-  let msg_date = connection.transaction.header.get_all('Date')
-  if (!msg_date || msg_date.length === 0) return next()
+  const msg_date_hdrs = connection.transaction.header.get_all('Date')
+  if (!msg_date_hdrs || msg_date_hdrs.length === 0) return next()
 
-  connection.logdebug(plugin, `message date: ${msg_date}`)
-  msg_date = Date.parse(msg_date)
+  const raw_date = msg_date_hdrs[0]
+  connection.logdebug(plugin, `message date: ${exports.sanitize_hdr(raw_date)}`)
+  const msg_date = Date.parse(raw_date)
+
+  if (Number.isNaN(msg_date)) {
+    connection.transaction.results.add(plugin, { fail: 'invalid_date(unparseable)' })
+    if (plugin.cfg.reject.invalid_date) {
+      return next(DENY, 'The Date header could not be parsed')
+    }
+    return next()
+  }
 
   const date_future_days = plugin.cfg.main.date_future_days !== undefined ? plugin.cfg.main.date_future_days : 2
 
@@ -311,7 +336,7 @@ exports.from_match = function (next, connection) {
   } catch (e) {
     connection.logwarn(
       plugin,
-      `parsing "${hdr_from.trim()}" with @haraka/email-address plugin returned error: ${e.message}`,
+      `parsing "${exports.sanitize_hdr(hdr_from.trim())}" with address-rfc2822 plugin returned error: ${e.message}`,
     )
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
@@ -320,7 +345,7 @@ exports.from_match = function (next, connection) {
   }
 
   if (!hdr_addr) {
-    connection.loginfo(plugin, `address at fault is: ${hdr_from}`)
+    connection.loginfo(plugin, `address at fault is: ${exports.sanitize_hdr(hdr_from)}`)
     connection.transaction.results.add(plugin, {
       fail: 'from_match(unparsable)',
     })
@@ -337,11 +362,12 @@ exports.from_match = function (next, connection) {
   const msg_dom = tlds.get_organizational_domain(hdr_addr.host())
   if (env_dom && msg_dom && env_dom.toLowerCase() === msg_dom.toLowerCase()) {
     const fcrdns = connection.results.get('fcrdns')
-    if (fcrdns && fcrdns.fcrdns && new RegExp(`${msg_dom}\\b`, 'i').test(fcrdns.fcrdns)) {
+    const fcrdns_host = fcrdns && (Array.isArray(fcrdns.fcrdns) ? fcrdns.fcrdns[0] : fcrdns.fcrdns)
+    if (domain_suffix_match(fcrdns_host, msg_dom)) {
       extra.push('fcrdns')
     }
     const helo = connection.results.get('helo.checks')
-    if (helo && helo.helo_host && /msg_dom$/.test(helo.helo_host)) {
+    if (helo && domain_suffix_match(helo.helo_host, msg_dom)) {
       extra.push('helo')
     }
 
@@ -400,10 +426,10 @@ exports.mailing_list = function (next, connection) {
   let found_mlm = 0
   const txr = connection.transaction.results
 
-  Object.keys(mlms).forEach((name) => {
+  for (const name of Object.keys(mlms)) {
     const header = connection.transaction.header.get(name)
     if (!header) {
-      return
+      continue
     } // header not present
     for (const j of mlms[name]) {
       if (j.start) {
@@ -438,7 +464,7 @@ exports.mailing_list = function (next, connection) {
         continue
       }
     }
-  })
+  }
   if (found_mlm) return next()
 
   connection.transaction.results.add(plugin, { msg: 'not MLM' })
@@ -458,9 +484,12 @@ exports.from_phish = function (next, connection) {
 
     // extract the from domain by parsing the From header, grabbing the first address, extracting the
     // portion following the last @, and reducing that to an Org Domain
-    const hdr_from_domain = tlds.get_organizational_domain(
-      this.addrparser.parseHeader(hdr_from)[0].address().split('@').at(-1),
-    )
+    const parsed_from = this.addrparser.parse(hdr_from)
+    if (!parsed_from || !parsed_from[0]) {
+      connection.transaction.results.add(this, { fail: 'from_phish(unparseable)' })
+      return next()
+    }
+    const hdr_from_domain = tlds.get_organizational_domain(parsed_from[0].address().split('@').at(-1))
 
     for (const pt of this.phish_targets) {
       if (pt.pattern.test(this.normalize_lookalikes(hdr_from))) {
@@ -490,7 +519,7 @@ exports.from_phish = function (next, connection) {
 
 exports.has_auth_match = function (domain, conn) {
   // check domain RegEx against spf, dkim, and fcrdns for a match
-  const re = new RegExp(domain.replace('.', '[.]'), 'i')
+  const re = new RegExp(exports.escape_regex(domain), 'i')
 
   const spf = conn.transaction.results.get('spf') // only check mfrom
   if (spf && re.test(spf.pass)) return true

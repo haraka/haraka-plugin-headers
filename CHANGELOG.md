@@ -4,7 +4,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
-### [1.1.1] - 2026-05-15
+### [1.1.3] - 2026-05-20
+
+- revert a 1.2.0 change that snuck by, fixes #12
+- fix(phish): escape all dots in domains (was only first)
+- fix(phish): verify parse(hdr_from)[0] before dereferencing
+- fix: sanitize hdr_from and Date before logging
+- fix(date): don't silently pass unparsable dates
+- fix(helo): from_match() never matched the HELO host suffix correctly
+
+### [1.1.2] - 2026-05-15
 
 - test: convert runner to node:test
 - test: remove unnecessary done callbacks (#8)
@@ -64,4 +73,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.0.5]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.5
 [1.0.6]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.0.6
 [1.1.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.0
-[1.1.1]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.1
+[1.1.2]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.2
+[1.1.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.3
