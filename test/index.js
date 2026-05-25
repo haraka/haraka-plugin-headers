@@ -3,7 +3,7 @@ const assert = require('node:assert')
 const { describe, it, beforeEach } = require('node:test')
 
 // npm modules
-const Address = require('address-rfc2821').Address
+const { Address } = require('@haraka/email-address')
 const constants = require('haraka-constants')
 const fixtures = require('haraka-test-fixtures')
 
@@ -18,7 +18,7 @@ beforeEach(() => {
   plugin.register()
 
   try {
-    plugin.addrparser = require('address-rfc2822')
+    plugin.addrparser = require('@haraka/email-address')
   } catch (ignore) {}
 
   connection = fixtures.connection.createConnection()
@@ -319,7 +319,7 @@ describe('has_auth_match', () => {
   })
 })
 
-describe.skip('from_phish', () => {
+describe('from_phish', () => {
   it('passes mfrom match', (t, done) => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', '"Test User" <test@example.com>')
