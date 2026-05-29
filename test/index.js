@@ -5,7 +5,7 @@ const { describe, it, beforeEach } = require('node:test')
 // npm modules
 const { Address } = require('@haraka/email-address')
 const constants = require('haraka-constants')
-const fixtures = require('haraka-test-fixtures')
+const { makeConnection, makePlugin } = require('haraka-test-fixtures')
 
 // start of tests
 //    assert: https://nodejs.org/api/assert.html
@@ -14,15 +14,13 @@ const fixtures = require('haraka-test-fixtures')
 let plugin, connection
 
 beforeEach(() => {
-  plugin = new fixtures.plugin('haraka-plugin-headers')
-  plugin.register()
+  plugin = makePlugin('haraka-plugin-headers')
 
   try {
     plugin.addrparser = require('@haraka/email-address')
   } catch (ignore) {}
 
-  connection = fixtures.connection.createConnection()
-  connection.init_transaction()
+  connection = makeConnection({ withTxn: true })
 })
 
 describe('haraka-plugin-headers', () => {

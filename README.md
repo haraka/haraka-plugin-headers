@@ -1,7 +1,6 @@
-[![CI Tests][ci-img]][ci-url]
-[![Code Climate][clim-img]][clim-url]
-
 # haraka-plugin-headers
+
+[![Test][ci-img]][ci-url] [![Cover][cov-img]][cov-url] [![Qlty][qlty-img]][qlty-url]
 
 This plugin performs a variety of mail header inspections.
 
@@ -135,5 +134,7 @@ missing_required=false
 
 [ci-img]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/haraka/haraka-plugin-headers/actions/workflows/ci.yml
-[clim-img]: https://codeclimate.com/github/haraka/haraka-plugin-headers/badges/gpa.svg
-[clim-url]: https://codeclimate.com/github/haraka/haraka-plugin-headers
+[cov-img]: https://codecov.io/github/haraka/haraka-plugin-headers/coverage.svg
+[cov-url]: https://codecov.io/github/haraka/haraka-plugin-headers
+[qlty-img]: https://qlty.sh/gh/haraka/projects/haraka-plugin-headers/maintainability.svg
+[qlty-url]: https://qlty.sh/gh/haraka/projects/haraka-plugin-headers
