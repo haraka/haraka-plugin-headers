@@ -1,14 +1,6 @@
 // validate message headers and some fields
 const tlds = require('haraka-tld')
-
-exports.escape_regex = function (s) {
-  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-exports.sanitize_hdr = function (s) {
-  // eslint-disable-next-line no-control-regex
-  return String(s).replace(/[\x00-\x1f\x7f]/g, '?')
-}
+const utils = require('haraka-utils')
 
 function domain_suffix_match(host, domain) {
   if (!host || !domain) return false
@@ -75,7 +67,7 @@ exports.load_headers_ini = function () {
       this.phish_targets.push({
         brand,
         domain,
-        pattern: new RegExp(exports.escape_regex(domain), 'i'),
+        pattern: new RegExp(utils.regexp_escape(domain), 'i'),
       })
     }
   }
@@ -83,7 +75,7 @@ exports.load_headers_ini = function () {
   if (plugin.cfg.phish_targets) {
     for (const [brand, domain] of Object.entries(plugin.cfg.phish_targets)) {
       // Use word boundaries to avoid false positives
-      const escaped_name = exports.escape_regex(brand.toLowerCase())
+      const escaped_name = utils.regexp_escape(brand.toLowerCase())
       this.phish_targets.push({
         brand: brand.toLowerCase(),
         pattern: new RegExp(`\\b${escaped_name}\\b`, 'i'),
@@ -192,7 +184,7 @@ exports.invalid_date = function (next, connection) {
   if (!msg_date_hdrs || msg_date_hdrs.length === 0) return next()
 
   const raw_date = msg_date_hdrs[0]
-  connection.logdebug(plugin, `message date: ${exports.sanitize_hdr(raw_date)}`)
+  connection.logdebug(plugin, `message date: ${utils.sanitize(raw_date, { replacement: '?' })}`)
   const msg_date = Date.parse(raw_date)
 
   if (Number.isNaN(msg_date)) {
@@ -330,7 +322,7 @@ exports.from_match = function (next, connection) {
   } catch (e) {
     connection.logwarn(
       plugin,
-      `parsing "${exports.sanitize_hdr(hdr_from.trim())}" with @haraka/email-address returned error: ${e.message}`,
+      `parsing "${utils.sanitize(hdr_from.trim(), { replacement: '?' })}" with @haraka/email-address returned error: ${e.message}`,
     )
     connection.transaction.results.add(plugin, {
       fail: 'from_match(rfc_violation)',
@@ -339,7 +331,7 @@ exports.from_match = function (next, connection) {
   }
 
   if (!hdr_addr) {
-    connection.loginfo(plugin, `address at fault is: ${exports.sanitize_hdr(hdr_from)}`)
+    connection.loginfo(plugin, `address at fault is: ${utils.sanitize(hdr_from, { replacement: '?' })}`)
     connection.transaction.results.add(plugin, {
       fail: 'from_match(unparsable)',
     })
@@ -513,7 +505,7 @@ exports.from_phish = function (next, connection) {
 
 exports.has_auth_match = function (domain, conn) {
   // check domain RegEx against spf, dkim, and fcrdns for a match
-  const re = new RegExp(exports.escape_regex(domain), 'i')
+  const re = new RegExp(utils.regexp_escape(domain), 'i')
 
   const spf = conn.transaction.results.get('spf') // only check mfrom
   if (spf && re.test(spf.pass)) return true

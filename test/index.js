@@ -750,25 +750,10 @@ describe('from_match edge cases', () => {
   })
 })
 
-describe('escape_regex', () => {
-  it('escapes all regex metacharacters', () => {
-    assert.equal(plugin.escape_regex('a.b'), 'a\\.b')
-    assert.equal(plugin.escape_regex('a.b.c.d'), 'a\\.b\\.c\\.d')
-    assert.equal(plugin.escape_regex('foo[bar]'), 'foo\\[bar\\]')
-    assert.equal(plugin.escape_regex('a+b*c?'), 'a\\+b\\*c\\?')
-  })
-
-  it('makes has_auth_match safe for multi-dot domains', () => {
+describe('has_auth_match', () => {
+  it('escapes domain dots so multi-dot domains match literally', () => {
     // Without full escaping, 'example.co.uk' as a regex would match 'exampleXco.uk'.
     connection.transaction.results.add({ name: 'spf' }, { pass: 'exampleXcoXuk' })
     assert.equal(plugin.has_auth_match('example.co.uk', connection), false)
-  })
-})
-
-describe('sanitize_hdr', () => {
-  it('strips control characters but keeps printable text', () => {
-    assert.equal(plugin.sanitize_hdr('hello\r\nworld'), 'hello??world')
-    assert.equal(plugin.sanitize_hdr('plain text'), 'plain text')
-    assert.equal(plugin.sanitize_hdr('with\x00null'), 'with?null')
   })
 })
