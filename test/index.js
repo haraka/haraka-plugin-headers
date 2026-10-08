@@ -155,6 +155,16 @@ describe('from_match', () => {
     }, connection)
   })
 
+  it('matches with an unquoted comma in the display name', (t, done) => {
+    connection.transaction.mail_from = new Address('<test@example.com>')
+    connection.transaction.header.add_end('From', 'User, Test <test@example.com>')
+    plugin.from_match(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.pass, ['from_match'])
+      done()
+    }, connection)
+  })
+
   it('mismatch', (t, done) => {
     plugin.cfg.check.from_match = true
     connection.transaction.mail_from = new Address('<test@example.com>')
@@ -336,6 +346,46 @@ describe('from_phish', () => {
       const r = connection.transaction.results.get('haraka-plugin-headers')
       // console.log(r)
       assert.equal(r.fail.length, 1)
+      done()
+    }, connection)
+  })
+
+  it('fails a brand with an unquoted comma in the display name', (t, done) => {
+    connection.transaction.header.add_end('From', 'PayPal, Security Team <alert@example.net>')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  it('fails a brand when the From address is unparseable', (t, done) => {
+    connection.transaction.header.add_end('From', 'PayPal, alert@example.net')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  it('fails unparseable when no brand matches', (t, done) => {
+    connection.transaction.header.add_end('From', 'garbage')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(unparseable)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  it('passes an unquoted comma in a legitimate display name', (t, done) => {
+    connection.transaction.header.add_end('From', 'Project Site - 1, résumé quotidien <notifications@example.com>')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.pass, ['from_phish'])
+      assert.deepEqual(r.err, [])
       done()
     }, connection)
   })
