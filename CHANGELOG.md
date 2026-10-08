@@ -6,19 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### [1.2.1] - 2026-10-07
 
-#### Fixed
-
-- check brands when From is unparseable #19 (#19)
-
-#### Changed
-
-- use haraka-utils sanitize()/regexp_escape() (#16)
-- refactored against test-fixtures 1.7.0 (#15)
-
 - fix(phish): check brands in unparseable From #19
-- change: allow commas in display names #19
-- refactor: use `haraka-utils` sanitize()/regexp_escape()
-- test: refactored against test-fixtures 1.7.0
+- change: allow some commas in display names #19
+- use haraka-utils sanitize()/regexp_escape() #16
+- test: refactored against test-fixtures 1.7.0 #15
 
 ### [1.2.0] - 2026-05-20
 
