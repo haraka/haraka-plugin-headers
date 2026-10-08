@@ -4,6 +4,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+### [1.2.1] - 2026-10-07
+
+#### Fixed
+
+- check brands when From is unparseable #19 (#19)
+
+#### Changed
+
+- use haraka-utils sanitize()/regexp_escape() (#16)
+- refactored against test-fixtures 1.7.0 (#15)
+
 - fix(phish): check brands in unparseable From #19
 - change: allow commas in display names #19
 - refactor: use `haraka-utils` sanitize()/regexp_escape()
@@ -85,3 +96,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 [1.1.2]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.2
 [1.1.3]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.1.3
 [1.2.0]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.2.0
+[1.2.1]: https://github.com/haraka/haraka-plugin-headers/releases/tag/v1.2.1
