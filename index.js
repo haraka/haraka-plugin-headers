@@ -12,8 +12,19 @@ function domain_suffix_match(host, domain) {
 const { parseHeader } = require('@haraka/email-address')
 
 // Unquoted commas in display names violate RFC 5322 but are common in
-// legitimate mail, e.g. "Doe, John <j@example.com>".
-const parse_opts = { allowCommaInDisplayName: true }
+// legitimate mail, e.g. "Doe, John <j@example.com>". Leniency is only a
+// fallback: it merges a valid list such as "a@evil.example, PayPal
+// <x@paypal.com>" into one paypal.com mailbox, and a phrase containing
+// '@' means it swallowed an address that strict parsing would have kept.
+function parse_from(hdr) {
+  try {
+    return parseHeader(hdr)
+  } catch (err) {
+    const addrs = parseHeader(hdr, { allowCommaInDisplayName: true })
+    if (addrs.some((a) => a.phrase.includes('@'))) throw err
+    return addrs
+  }
+}
 
 exports.register = function () {
   this.load_headers_ini()
@@ -322,7 +333,7 @@ exports.from_match = function (next, connection) {
 
   let hdr_addr
   try {
-    hdr_addr = parseHeader(hdr_from, parse_opts)[0]
+    hdr_addr = parse_from(hdr_from)[0]
   } catch (e) {
     connection.logwarn(
       plugin,
@@ -474,7 +485,7 @@ exports.from_phish = function (next, connection) {
 
     let hdr_from_addr
     try {
-      hdr_from_addr = parseHeader(hdr_from, parse_opts)[0]
+      hdr_from_addr = parse_from(hdr_from)[0]
     } catch {
       // the brand patterns don't need the address, so an unparseable From must still be checked
     }

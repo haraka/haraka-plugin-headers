@@ -360,6 +360,22 @@ describe('from_phish', () => {
     }, connection)
   })
 
+  for (const from of [
+    'attacker@example.net, PayPal <service@paypal.com>',
+    'attacker@example.net, PayPal, Inc <service@paypal.com>',
+  ]) {
+    it(`fails a brand on a trusted domain after an untrusted address: ${from}`, async () => {
+      // before the PSL loads, every domain is null and any brand fails regardless of parsing
+      await require('haraka-tld').ready
+      connection.transaction.header.add_end('From', from)
+      await new Promise((resolve) => plugin.from_phish(resolve, connection))
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.match(r.msg[0], /domain is '(example\.net|unparseable)'/)
+      assert.deepEqual(r.err, [])
+    })
+  }
+
   it('fails a brand when the From address is unparseable', (t, done) => {
     connection.transaction.header.add_end('From', 'PayPal, alert@example.net')
     plugin.from_phish(() => {
