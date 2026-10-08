@@ -4,6 +4,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Unreleased
 
+- fix(phish): check brands in unparseable From #19
+- change: allow commas in display names #19
 - refactor: use `haraka-utils` sanitize()/regexp_escape()
 - test: refactored against test-fixtures 1.7.0
 

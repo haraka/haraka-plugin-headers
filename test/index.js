@@ -46,7 +46,7 @@ describe('user_agent', () => {
   it('none', (t, done) => {
     plugin.cfg.check.user_agent = true
     plugin.user_agent(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(/UA/.test(r.fail), true)
       assert.equal(/UA/.test(r.pass), false)
       done()
@@ -57,7 +57,7 @@ describe('user_agent', () => {
     plugin.cfg.check.user_agent = true
     connection.transaction.header.add_end('User-Agent', 'Thunderbird')
     plugin.user_agent(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       // console.log(r)
       assert.equal(true, /UA/.test(r.pass))
       assert.equal(false, /UA/.test(r.fail))
@@ -69,7 +69,7 @@ describe('user_agent', () => {
     plugin.cfg.check.user_agent = true
     connection.transaction.header.add_end('X-Mailer', 'Apple Mail')
     plugin.user_agent(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /UA/.test(r.pass))
       assert.equal(false, /UA/.test(r.fail))
       done()
@@ -82,7 +82,7 @@ describe('direct_to_mx', () => {
     connection.notes.auth_user = 'test@example.com'
     plugin.cfg.check.direct_to_mx = true
     plugin.direct_to_mx(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /^direct-to-mx/.test(r.skip))
       assert.equal(false, /^direct-to-mx/.test(r.pass))
       assert.equal(false, /^direct-to-mx/.test(r.fail))
@@ -93,7 +93,7 @@ describe('direct_to_mx', () => {
   it('received 0', (t, done) => {
     plugin.cfg.check.direct_to_mx = true
     plugin.direct_to_mx(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /^direct-to-mx/.test(r.fail))
       assert.equal(false, /^direct-to-mx/.test(r.pass))
       assert.equal(false, /^direct-to-mx/.test(r.skip))
@@ -104,7 +104,7 @@ describe('direct_to_mx', () => {
     plugin.cfg.check.direct_to_mx = true
     connection.transaction.header.add_end('Received', 'blah')
     plugin.direct_to_mx(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /^direct-to-mx/.test(r.fail))
       done()
     }, connection)
@@ -114,7 +114,7 @@ describe('direct_to_mx', () => {
     connection.transaction.header.add_end('Received', 'blah1')
     connection.transaction.header.add_end('Received', 'blah2')
     plugin.direct_to_mx(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /^direct-to-mx/.test(r.pass))
       assert.equal(false, /^direct-to-mx/.test(r.fail))
       assert.equal(false, /^direct-to-mx/.test(r.skip))
@@ -129,7 +129,7 @@ describe('from_match', () => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', 'test@example.com')
     plugin.from_match(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.notEqual(-1, r.pass.indexOf('from_match'))
       done()
     }, connection)
@@ -139,7 +139,7 @@ describe('from_match', () => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', '"Test User" <test@example.com>')
     plugin.from_match(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.notEqual(-1, r.pass.indexOf('from_match'))
       done()
     }, connection)
@@ -149,8 +149,18 @@ describe('from_match', () => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', 'Test User <test@example.com>')
     plugin.from_match(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.notEqual(-1, r.pass.indexOf('from_match'))
+      done()
+    }, connection)
+  })
+
+  it('matches with an unquoted comma in the display name', (t, done) => {
+    connection.transaction.mail_from = new Address('<test@example.com>')
+    connection.transaction.header.add_end('From', 'User, Test <test@example.com>')
+    plugin.from_match(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.pass, ['from_match'])
       done()
     }, connection)
   })
@@ -161,7 +171,7 @@ describe('from_match', () => {
     connection.transaction.header.add_end('From', 'test@example.net')
     // console.log(this.connection.transaction.results);
     plugin.from_match(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /^from_match/.test(r.fail))
       done()
     }, connection)
@@ -173,7 +183,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('Mailing-List', 'blah blah: run by ezmlm')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /ezmlm/.test(r.pass))
       assert.equal(0, r.fail.length)
       done()
@@ -183,7 +193,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('Mailing-List', 'blah blah random header tokens')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(r.pass.length, 0)
       assert.equal(true, /not/.test(r.msg))
       done()
@@ -193,7 +203,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('Mailing-List', 'blah blah such-and-such@yahoogroups.com email list')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /yahoogroups/.test(r.pass))
       done()
     }, connection)
@@ -202,7 +212,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('Sender', 'owner-blah-blah whatcha')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /majordomo/.test(r.pass))
       done()
     }, connection)
@@ -211,7 +221,7 @@ describe('mailing_list', () => {
     connection.transaction.header.add_end('X-Mailman-Version', 'owner-blah-blah whatcha')
     plugin.cfg.check.mailing_list = true
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /mailman/.test(r.pass))
       done()
     }, connection)
@@ -220,7 +230,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('X-Majordomo-Version', 'owner-blah-blah whatcha')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /majordomo/.test(r.pass))
       done()
     }, connection)
@@ -229,7 +239,7 @@ describe('mailing_list', () => {
     plugin.cfg.check.mailing_list = true
     connection.transaction.header.add_end('X-Google-Loop', 'blah-blah whatcha')
     plugin.mailing_list(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.equal(true, /googlegroups/.test(r.pass))
       done()
     }, connection)
@@ -322,7 +332,7 @@ describe('from_phish', () => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', '"Test User" <test@example.com>')
     plugin.from_phish(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       // console.log(r)
       assert.equal(true, r.pass.includes('from_phish'))
       done()
@@ -333,9 +343,65 @@ describe('from_phish', () => {
     connection.transaction.mail_from = new Address('<test@example.com>')
     connection.transaction.header.add_end('From', 'Amazon <test@ayodongbanyak08.com>')
     plugin.from_phish(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       // console.log(r)
       assert.equal(r.fail.length, 1)
+      done()
+    }, connection)
+  })
+
+  it('fails a brand with an unquoted comma in the display name', (t, done) => {
+    connection.transaction.header.add_end('From', 'PayPal, Security Team <alert@example.net>')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  for (const from of [
+    'attacker@example.net, PayPal <service@paypal.com>',
+    'attacker@example.net, PayPal, Inc <service@paypal.com>',
+  ]) {
+    it(`fails a brand on a trusted domain after an untrusted address: ${from}`, async () => {
+      // before the PSL loads, every domain is null and any brand fails regardless of parsing
+      await require('haraka-tld').ready
+      connection.transaction.header.add_end('From', from)
+      await new Promise((resolve) => plugin.from_phish(resolve, connection))
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.match(r.msg[0], /domain is '(example\.net|unparseable)'/)
+      assert.deepEqual(r.err, [])
+    })
+  }
+
+  it('fails a brand when the From address is unparseable', (t, done) => {
+    connection.transaction.header.add_end('From', 'PayPal, alert@example.net')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(paypal)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  it('fails unparseable when no brand matches', (t, done) => {
+    connection.transaction.header.add_end('From', 'garbage')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.fail, ['from_phish(unparseable)'])
+      assert.deepEqual(r.err, [])
+      done()
+    }, connection)
+  })
+
+  it('passes an unquoted comma in a legitimate display name', (t, done) => {
+    connection.transaction.header.add_end('From', 'Project Site - 1, résumé quotidien <notifications@example.com>')
+    plugin.from_phish(() => {
+      const r = connection.transaction.results.get(plugin)
+      assert.deepEqual(r.pass, ['from_phish'])
+      assert.deepEqual(r.err, [])
       done()
     }, connection)
   })
@@ -348,7 +414,7 @@ describe('from_phish', () => {
     connection.transaction.header.add_end('From', 'Amazon Business <no-reply@business.amazon.com>')
     connection.transaction.results.add({ name: 'dkim' }, { pass: ['business.amazon.com', 'amazonses.com'] })
     plugin.from_phish(() => {
-      const r = connection.transaction.results.get('haraka-plugin-headers')
+      const r = connection.transaction.results.get(plugin)
       assert.deepEqual(r.fail, [])
       assert.deepEqual(r.pass, ['from_phish'])
       done()
@@ -432,7 +498,8 @@ describe('from_phish', () => {
   ]
 
   for (const testCase of testCases) {
-    it(testCase.description, (t, done) => {
+    it(testCase.description, async () => {
+      await require('haraka-tld').ready
       if (!plugin.cfg) plugin.cfg = {}
       if (!plugin.cfg.reject) plugin.cfg.reject = {}
       plugin.cfg.reject.from_phish = true
@@ -441,13 +508,10 @@ describe('from_phish', () => {
 
       connection.transaction.header.add('From', testCase.from)
 
-      plugin.from_phish((code, msg) => {
-        assert.equal(code, testCase.expectedCode)
-
-        if (testCase.assertMsg) testCase.assertMsg(msg)
-
-        done()
-      }, connection)
+      // assert outside the callback: from_phish's try/catch would swallow a throw from inside it
+      const [code, msg] = await new Promise((resolve) => plugin.from_phish((...args) => resolve(args), connection))
+      assert.equal(code, testCase.expectedCode)
+      if (testCase.assertMsg) testCase.assertMsg(msg)
     })
   }
 })
